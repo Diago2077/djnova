@@ -182,7 +182,7 @@ h3 {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 0 40px color-mix(in srgb, var(--accent) 18%, transparent));
+  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--accent) 8%, transparent));
 }
 .gate-name {
   flex: none;
@@ -193,7 +193,7 @@ h3 {
   line-height: 1;
   letter-spacing: -0.03em;
   text-wrap: balance;
-  text-shadow: 0 0 40px color-mix(in srgb, var(--accent) 22%, transparent);
+  text-shadow: 0 0 28px color-mix(in srgb, var(--accent) 9%, transparent);
 }
 .gate-apodo {
   margin: 0 0 40px;
