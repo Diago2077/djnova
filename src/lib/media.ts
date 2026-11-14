@@ -5,7 +5,7 @@
 // de Drive subido por la app, se pide por trozos al Apps Script (acción pública
 // getArchivo) y se reproduce desde un blob local. Cualquier otra URL (MP4 externo,
 // etc.) se usa tal cual.
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { DEMO, post } from './api'
 
 const DRIVE = /drive\.google\.com\/uc\?export=download&id=([\w-]+)/
@@ -64,20 +64,45 @@ export function cargarMedia(url: string): Promise<string> {
   return p
 }
 
-/** Como cargarMedia para componentes: devuelve '' mientras se descarga (o si falló). */
-export function useMedia(url: string): string {
-  const [src, setSrc] = useState(() => (url && !driveId(url) ? url : ''))
+/**
+ * Fuente reproducible para un <audio>/<video>. Usar `src` y `ref` del elemento.
+ *
+ * - URL que no es de Drive (o modo demo): se usa tal cual.
+ * - Archivo de Drive: primero /api/media (función de Vercel que reenvía rangos desde
+ *   Drive: empieza al instante y permite adelantar). Si no responde (p. ej. en local
+ *   con `npm run dev`, o sin desplegar la función), cae a bajarlo por trozos del
+ *   Apps Script. Mientras no hay fuente `src` es ''.
+ */
+export function useMedia(url: string): { src: string; ref: (el: HTMLMediaElement | null) => void } {
+  const id = driveId(url)
+  // El estado va atado a la URL (sin efectos que lo reinicien): si cambia la URL, deja de valer.
+  const [falloUrl, setFalloUrl] = useState('') // URL cuyo /api/media no funcionó
+  const [blob, setBlob] = useState({ url: '', src: '' })
+  const fallo = !!url && falloUrl === url
+
   useEffect(() => {
+    if (!url || !id || !fallo) return
     let vivo = true
-    if (!url) setSrc('')
-    else if (!driveId(url)) setSrc(url)
-    else {
-      setSrc('')
-      cargarMedia(url).then((s) => vivo && setSrc(s))
-    }
+    cargarMedia(url).then((src) => vivo && setBlob({ url, src }))
     return () => {
       vivo = false
     }
-  }, [url])
-  return src
+  }, [url, id, fallo])
+
+  // El evento «error» puede dispararse antes de que React enganche su onError, así que
+  // se escucha también de forma nativa y se mira si el elemento ya falló.
+  const ref = useCallback(
+    (el: HTMLMediaElement | null) => {
+      if (!el || !id || fallo) return
+      const marcar = () => setFalloUrl(url)
+      if (el.error) marcar()
+      else el.addEventListener('error', marcar, { once: true })
+    },
+    [id, fallo, url],
+  )
+
+  if (!url) return { src: '', ref }
+  if (!id) return { src: url, ref }
+  if (!fallo) return { src: `/api/media?id=${id}`, ref }
+  return { src: blob.url === url ? blob.src : '', ref }
 }

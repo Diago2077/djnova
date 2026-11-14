@@ -102,8 +102,14 @@ como «cualquiera con el enlace». Límite 20 MB. Para videos largos usa YouTube
 video de fondo de la portada debe ser un MP4 corto.
 
 Drive **no deja** usar sus enlaces directamente en `<audio>`/`<video>` de otra web
-(devuelve una página, no el archivo). Por eso la web pide los archivos de audio y
-video al propio script (acción pública `getArchivo`, por trozos de 3 MB, solo de
-archivos registrados en la pestaña `Archivos`) y los reproduce desde el navegador.
-Un MP4 de 15 MB tarda unos segundos en llegar: mientras tanto se ve la imagen de
-portada. Si cambias `Code.gs`, publica una **nueva versión** de la implementación.
+(devuelve una página, no el archivo). Por eso el audio y el video se sirven así:
+
+1. **Normal (Vercel)**: la función `api/media.js` pide a Drive el rango que necesita
+   el reproductor (trozos de hasta 4 MB) y se lo reenvía. Empieza al instante y se
+   puede adelantar. Solo sirve archivos que aparecen en el contenido publicado
+   (lo comprueba con `getSitio`, usando la variable `VITE_API_URL` de Vercel).
+2. **Plan B**: si `/api/media` no responde (por ejemplo en local con `npm run dev`),
+   la web baja el archivo por trozos del script (acción pública `getArchivo`, solo
+   de archivos de la pestaña `Archivos`) y lo reproduce desde el navegador. Es más
+   lento (varios segundos por trozo). Si cambias `Code.gs`, publica una **nueva
+   versión** de la implementación.

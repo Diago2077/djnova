@@ -68,20 +68,24 @@ function Contenido({ cfg }: { cfg: SiteConfig }) {
   function sonar() {
     const a = audio.current
     if (!a) return
-    quiereSonar.current = false
     a.volume = 0.6
-    a.play().then(() => setSonido(true)).catch(() => setSonido(false))
+    a.play()
+      .then(() => {
+        quiereSonar.current = false
+        setSonido(true)
+      })
+      .catch(() => setSonido(false)) // sigue pendiente: se reintenta si cambia la fuente
   }
 
   useEffect(() => {
-    if (musica && quiereSonar.current) sonar()
-  }, [musica])
+    if (musica.src && quiereSonar.current) sonar()
+  }, [musica.src])
 
   function entrar() {
     setDentro(true)
     if (!ajustes.entrada.musica) return
     quiereSonar.current = true
-    if (musica) sonar()
+    if (musica.src) sonar()
   }
 
   function alternarSonido() {
@@ -126,7 +130,17 @@ function Contenido({ cfg }: { cfg: SiteConfig }) {
 
   return (
     <div ref={root}>
-      {musica && <audio ref={audio} src={musica} loop preload="auto" />}
+      {musica.src && (
+        <audio
+          ref={(el) => {
+            audio.current = el
+            musica.ref(el)
+          }}
+          src={musica.src}
+          loop
+          preload="auto"
+        />
+      )}
 
       {!dentro && (
         <div className="gate">

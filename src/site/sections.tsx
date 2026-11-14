@@ -109,8 +109,8 @@ export function Hero({ cfg }: P) {
   return (
     <header id="top" className="hero">
       <div className="hero-bg" ref={bg}>
-        {video ? (
-          <video src={video} poster={hero.imagen || undefined} autoPlay muted loop playsInline />
+        {video.src ? (
+          <video src={video.src} ref={video.ref} poster={hero.imagen || undefined} autoPlay muted loop playsInline />
         ) : hero.imagen ? (
           <img src={hero.imagen} alt="" />
         ) : (
