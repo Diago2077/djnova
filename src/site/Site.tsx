@@ -41,7 +41,8 @@ const COMPONENTES: Record<SeccionId, (p: { cfg: SiteConfig }) => React.ReactNode
 export default function Site() {
   const { cfg } = useConfig()
 
-  useEffect(() => {
+  // Antes de pintar: si no, el primer fotograma sale con los colores por defecto.
+  useLayoutEffect(() => {
     if (!cfg) return
     aplicarTema(cfg.ajustes.tema)
     aplicarSeo(cfg.ajustes.seo)
@@ -60,6 +61,16 @@ function Contenido({ cfg }: { cfg: SiteConfig }) {
 
   const secciones = cfg.secciones.filter((s) => s.visible).sort((a, b) => a.orden - b.orden)
   const wa = whatsappLink(ajustes.contratacion.whatsapp, ajustes.contratacion.mensajeWhatsapp)
+
+  // Con la pantalla de entrada puesta, la web de detrás no debe poder desplazarse.
+  useEffect(() => {
+    if (dentro) return
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = overflow
+    }
+  }, [dentro])
 
   // La música puede tardar en llegar (viene de Drive por trozos): si el visitante
   // entra antes, suena en cuanto esté lista.

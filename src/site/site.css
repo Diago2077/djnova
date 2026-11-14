@@ -142,8 +142,33 @@ h3 {
   gap: 22px;
   padding: 24px;
   text-align: center;
-  background: var(--bg);
-  animation: fadeIn 0.6s var(--ease);
+  background: var(--bg); /* opaco desde el primer fotograma: tapa la web que hay detrás */
+}
+/* El fundido es solo del contenido; si todo el fondo arrancara transparente se vería la web. */
+.gate > * {
+  animation: fadeIn 0.6s var(--ease) both;
+}
+/* Nombre / logo flotando con un resplandor del color de acento (como la web de referencia). */
+.gate > .gate-name,
+.gate > .gate-logo {
+  animation:
+    fadeIn 0.6s var(--ease) both,
+    gateFloat 3s ease-in-out 0.6s infinite;
+}
+.gate-name {
+  text-shadow: 0 0 70px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.gate-logo {
+  filter: drop-shadow(0 0 60px color-mix(in srgb, var(--accent) 45%, transparent));
+}
+@keyframes gateFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 .gate-glow {
   position: absolute;
