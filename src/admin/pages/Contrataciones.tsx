@@ -1,8 +1,10 @@
 import { Inbox, Mail, MessageCircle, RefreshCw } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { Contratacion } from '@/types'
+import { useAuth } from '../auth'
 import * as api from '../lib/api'
+import { ESTADOS_CONTRATACION as ESTADOS } from '../lib/api'
 import { cn } from '../lib/cn'
 import { fechaHora } from '../lib/formato'
 import { Badge, type TonoBadge } from '../ui/badge'
@@ -11,7 +13,6 @@ import { Card } from '../ui/card'
 import { Cargando, ErrorBox, Vacio } from '../ui/estado'
 import { Select } from '../ui/field'
 
-const ESTADOS = ['Nuevo', 'Contactado', 'Negociando', 'Cerrado', 'Descartado'] as const
 const TONO: Record<string, TonoBadge> = {
   Nuevo: 'primary',
   Contactado: 'warning',
@@ -27,6 +28,7 @@ function enlaceContacto(c: string) {
 }
 
 export default function Contrataciones() {
+  const { puedeEditar } = useAuth()
   const [items, setItems] = useState<Contratacion[] | null>(null)
   const [filtro, setFiltro] = useState('Todos')
   const [error, setError] = useState<string | null>(null)
@@ -48,10 +50,27 @@ export default function Contrataciones() {
     cargar()
   }, [cargar])
 
-  async function cambiar(fila: number, estado: string) {
-    setItems((list) => list?.map((b) => (b.fila === fila ? { ...b, estado } : b)) ?? null)
+  // Igual que Pedidos ON: cada minuto se pregunta la revisión de «contrataciones»
+  // (sin leer la hoja) y solo si cambió se vuelve a cargar la lista.
+  const revision = useRef<number | null>(null)
+  useEffect(() => {
+    const id = window.setInterval(async () => {
+      if (document.hidden) return
+      try {
+        const rev = (await api.revisiones()).contrataciones ?? 0
+        if (revision.current !== null && rev !== revision.current) cargar()
+        revision.current = rev
+      } catch {
+        /* sin conexión: se reintenta en el siguiente minuto */
+      }
+    }, 60_000)
+    return () => window.clearInterval(id)
+  }, [cargar])
+
+  async function cambiar(id: string, estado: string) {
+    setItems((list) => list?.map((b) => (b.id === id ? { ...b, estado } : b)) ?? null)
     try {
-      await api.cambiarEstadoContratacion(fila, estado)
+      await api.cambiarEstadoContratacion(id, estado)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'No se pudo actualizar.')
       cargar()
@@ -106,7 +125,7 @@ export default function Contrataciones() {
             const link = enlaceContacto(b.contacto)
             const estado = estadoDe(b)
             return (
-              <Card key={b.fila} className="p-4">
+              <Card key={b.id} className="p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -115,7 +134,7 @@ export default function Contrataciones() {
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">Recibido {fechaHora(b.recibido)}</p>
                   </div>
-                  <Select className="h-8 w-36 text-xs" value={estado} onChange={(e) => cambiar(b.fila, e.target.value)}>
+                  <Select className="h-8 w-36 text-xs" value={estado} onChange={(e) => cambiar(b.id, e.target.value)} disabled={!puedeEditar}>
                     {ESTADOS.map((e) => (
                       <option key={e}>{e}</option>
                     ))}

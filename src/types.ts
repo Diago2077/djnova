@@ -55,7 +55,7 @@ export type SeccionId =
   | 'presskit'
 
 export interface Seccion { id: SeccionId; menu: string; visible: boolean; orden: number }
-export interface Numero { valor: number; prefijo: string; etiqueta: string }
+export interface Numero { numero: number; prefijo: string; etiqueta: string }
 export interface Pais { bandera: string; nombre: string; regiones: string; ciudades: string }
 export interface Barra { etiqueta: string; porcentaje: number }
 export interface Show { fecha: string; lugar: string; ciudad: string; estado: string; entradas: string }
@@ -84,7 +84,7 @@ export interface SiteConfig extends Listas {
 
 /** Fila de la pestaña "contrataciones" (solo visible en /admin). */
 export interface Contratacion {
-  fila: number
+  id: string
   recibido: string
   nombre: string
   contacto: string
@@ -96,4 +96,4 @@ export interface Contratacion {
 }
 
 /** Forma en que viaja la configuración hacia/desde Google Sheets. */
-export type Tablas = Record<string, Record<string, string>[]>
+export type Tablas = Record<string, Record<string, unknown>[]>

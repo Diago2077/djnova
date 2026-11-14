@@ -6,14 +6,16 @@ import { useAuth } from '../auth'
 import { CambiarPasswordModal, EditarUsuarioModal, NuevoUsuarioModal, UsuarioDetalleModal } from '../components/UsuarioModales'
 import * as api from '../lib/api'
 import { ROL_LABEL, type Perfil } from '../lib/api'
-import { fechaHora, normalizar } from '../lib/formato'
-import { Badge } from '../ui/badge'
+import { normalizar } from '../lib/formato'
+import { Badge, type TonoBadge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Cargando, ErrorBox, Vacio } from '../ui/estado'
 import { Input } from '../ui/field'
 import { ConfirmModal } from '../ui/modal'
 
 // Adaptado de contable/src/pages/Usuarios.tsx
+
+const TONO_ROL: Record<Perfil['rol'], TonoBadge> = { admin: 'primary', operador: 'neutral', consulta: 'warning' }
 
 export default function Usuarios() {
   const { perfil, esAdmin, refrescarPerfil } = useAuth()
@@ -33,7 +35,7 @@ export default function Usuarios() {
     setError(null)
     try {
       const items = await api.listarUsuarios()
-      setData(items.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')))
+      setData(items.sort((a, b) => a.usuario.localeCompare(b.usuario, 'es')))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudieron cargar los usuarios.')
     } finally {
@@ -48,7 +50,7 @@ export default function Usuarios() {
   const filtrados = useMemo(() => {
     const q = normalizar(busqueda)
     if (!q) return data
-    return data.filter((u) => normalizar(u.nombre).includes(q) || normalizar(u.email).includes(q))
+    return data.filter((u) => normalizar(u.usuario).includes(q) || normalizar(u.nombre).includes(q))
   }, [data, busqueda])
 
   const [modalNuevo, setModalNuevo] = useState(false)
@@ -57,6 +59,8 @@ export default function Usuarios() {
   const [modalPassword, setModalPassword] = useState<Perfil | null>(null)
   const [modalEliminar, setModalEliminar] = useState<Perfil | null>(null)
   const [eliminando, setEliminando] = useState(false)
+
+  const esYo = (u: Perfil | null) => !!u && u.usuario === perfil?.usuario
 
   if (!esAdmin) return null
 
@@ -75,7 +79,7 @@ export default function Usuarios() {
       {data.length > 0 && (
         <div className="relative mb-4 max-w-sm">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Buscar por nombre o email…" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+          <Input className="pl-9" placeholder="Buscar por usuario o nombre…" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
         </div>
       )}
 
@@ -92,29 +96,27 @@ export default function Usuarios() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                <th className="px-4 py-2.5 font-medium">Usuario</th>
                 <th className="px-4 py-2.5 font-medium">Nombre</th>
-                <th className="px-4 py-2.5 font-medium">Email</th>
                 <th className="px-4 py-2.5 font-medium">Rol</th>
-                <th className="hidden px-4 py-2.5 font-medium md:table-cell">Último acceso</th>
                 <th className="px-4 py-2.5 font-medium">Estado</th>
               </tr>
             </thead>
             <tbody>
               {filtrados.map((u) => (
                 <tr
-                  key={u.id}
+                  key={u.usuario}
                   onClick={() => setModalDetalle(u)}
                   className="cursor-pointer border-b border-border last:border-0 hover:bg-accent/40"
                 >
                   <td className="px-4 py-2.5 font-medium text-foreground">
-                    {u.nombre}
-                    {u.id === perfil?.id && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(tú)</span>}
+                    {u.usuario}
+                    {esYo(u) && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(tú)</span>}
                   </td>
-                  <td className="px-4 py-2.5 text-muted-foreground">{u.email}</td>
+                  <td className="px-4 py-2.5 text-muted-foreground">{u.nombre || '—'}</td>
                   <td className="px-4 py-2.5">
-                    <Badge tono={u.rol === 'admin' ? 'primary' : 'neutral'}>{ROL_LABEL[u.rol]}</Badge>
+                    <Badge tono={TONO_ROL[u.rol]}>{ROL_LABEL[u.rol]}</Badge>
                   </td>
-                  <td className="hidden px-4 py-2.5 text-muted-foreground md:table-cell">{fechaHora(u.ultimoAcceso) || '—'}</td>
                   <td className="px-4 py-2.5">
                     <Badge tono={u.activo ? 'success' : 'neutral'}>{u.activo ? 'Activo' : 'Inactivo'}</Badge>
                   </td>
@@ -136,7 +138,7 @@ export default function Usuarios() {
 
       <UsuarioDetalleModal
         usuario={modalDetalle}
-        esYo={modalDetalle?.id === perfil?.id}
+        esYo={esYo(modalDetalle)}
         onCerrar={() => setModalDetalle(null)}
         onEditar={() => {
           setModalEditar(modalDetalle)
@@ -153,7 +155,7 @@ export default function Usuarios() {
         onToggleActivo={async () => {
           if (!modalDetalle) return
           try {
-            await api.activarUsuario(modalDetalle.id, !modalDetalle.activo)
+            await api.actualizarUsuario(modalDetalle.usuario, { ...modalDetalle, activo: !modalDetalle.activo })
             toast.success(modalDetalle.activo ? 'Usuario desactivado' : 'Usuario activado')
             setModalDetalle({ ...modalDetalle, activo: !modalDetalle.activo })
             refetch()
@@ -165,9 +167,10 @@ export default function Usuarios() {
 
       <EditarUsuarioModal
         usuario={modalEditar}
+        esYo={esYo(modalEditar)}
         onCerrar={() => setModalEditar(null)}
         onGuardado={() => {
-          if (modalEditar?.id === perfil?.id) refrescarPerfil()
+          if (esYo(modalEditar)) refrescarPerfil()
           setModalEditar(null)
           refetch()
         }}
@@ -181,7 +184,8 @@ export default function Usuarios() {
         procesando={eliminando}
         mensaje={
           <>
-            Se va a eliminar a <strong>{modalEliminar?.nombre}</strong> ({modalEliminar?.email}). Esta acción no se puede deshacer.
+            Se va a eliminar a <strong>{modalEliminar?.usuario}</strong>
+            {modalEliminar?.nombre ? ` (${modalEliminar.nombre})` : ''}. Esta acción no se puede deshacer.
           </>
         }
         onCancelar={() => setModalEliminar(null)}
@@ -189,7 +193,7 @@ export default function Usuarios() {
           if (!modalEliminar) return
           setEliminando(true)
           try {
-            await api.eliminarUsuario(modalEliminar.id)
+            await api.eliminarUsuario(modalEliminar.usuario)
             toast.success('Usuario eliminado')
             refetch()
           } catch (e) {

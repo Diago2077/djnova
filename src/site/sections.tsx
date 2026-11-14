@@ -86,7 +86,7 @@ export function Hero({ cfg }: P) {
   const { marca, hero, tema } = cfg.ajustes
   const resumen = cfg.numeros
     .slice(0, 3)
-    .map((n) => `${n.prefijo}${n.valor} ${n.etiqueta}`)
+    .map((n) => `${n.prefijo}${n.numero} ${n.etiqueta}`)
     .join(' · ')
   const bg = useRef<HTMLDivElement>(null)
 
@@ -177,7 +177,7 @@ export function Numeros({ cfg }: P) {
         {cfg.numeros.map((n, i) => (
           <div key={i} className="numero">
             <strong>
-              <Contador valor={n.valor} prefijo={n.prefijo} />
+              <Contador valor={n.numero} prefijo={n.prefijo} />
             </strong>
             <span>{n.etiqueta}</span>
           </div>

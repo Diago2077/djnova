@@ -52,7 +52,7 @@ function Shell() {
 
   async function salir() {
     if (cambios && !confirm('Tienes cambios sin guardar. ¿Salir igualmente?')) return
-    await signOut()
+    signOut()
   }
 
   const link = ({ isActive }: { isActive: boolean }) =>
@@ -92,9 +92,9 @@ function Shell() {
               <ExternalLink className="size-3.5" /> Ver web
             </a>
             <div className="hidden text-right sm:block">
-              <p className="text-xs font-medium text-foreground">{perfil?.nombre}</p>
+              <p className="text-xs font-medium text-foreground">{perfil?.nombre || perfil?.usuario}</p>
               <p className="text-[11px] text-muted-foreground">
-                {perfil?.email} · {perfil ? ROL_LABEL[perfil.rol] : ''}
+                {perfil?.usuario} · {perfil ? ROL_LABEL[perfil.rol] : ''}
               </p>
             </div>
             <Button variant="ghost" size="icon" onClick={alternarModo} title={modo === 'oscuro' ? 'Modo claro' : 'Modo oscuro'}>

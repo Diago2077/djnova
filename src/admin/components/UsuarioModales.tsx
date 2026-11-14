@@ -2,57 +2,60 @@ import { KeyRound, Pencil, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import * as api from '../lib/api'
-import { LARGO_MINIMO_PASSWORD, ROL_LABEL, type Perfil, type Rol } from '../lib/api'
-import { fechaHora } from '../lib/formato'
+import { ROL_AYUDA, ROL_LABEL, type Perfil, type Rol } from '../lib/api'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { ErrorBox } from '../ui/estado'
 import { Field, Input, Select } from '../ui/field'
 import { Modal } from '../ui/modal'
 
-// Adaptado de contable/src/components/usuarios/UsuarioModales.tsx.
-// Aquí solo hay un "estudio" (la web), así que el admin siempre elige el rol.
+// Diseño de contable/src/components/usuarios/UsuarioModales.tsx con el modelo
+// de usuarios de Pedidos ON (usuario en mayúsculas + nombre + rol + activo).
 
 function mensaje(e: unknown, porDefecto: string) {
   return e instanceof Error ? e.message : porDefecto
 }
 
-function SelectorDeRol({ valor, onCambiar }: { valor: Rol; onCambiar: (rol: Rol) => void }) {
+const ROLES: Rol[] = ['admin', 'operador', 'consulta']
+
+function SelectorDeRol({ valor, onCambiar, disabled }: { valor: Rol; onCambiar: (rol: Rol) => void; disabled?: boolean }) {
   return (
-    <Field label="Rol" hint={valor === 'admin' ? 'Puede gestionar usuarios.' : 'Edita el contenido y ve las contrataciones.'}>
-      <Select value={valor} onChange={(e) => onCambiar(e.target.value as Rol)}>
-        <option value="editor">{ROL_LABEL.editor}</option>
-        <option value="admin">{ROL_LABEL.admin}</option>
+    <Field label="Rol" hint={ROL_AYUDA[valor]}>
+      <Select value={valor} onChange={(e) => onCambiar(e.target.value as Rol)} disabled={disabled}>
+        {ROLES.map((r) => (
+          <option key={r} value={r}>
+            {ROL_LABEL[r]}
+          </option>
+        ))}
       </Select>
     </Field>
   )
 }
 
 export function NuevoUsuarioModal({ abierto, onCerrar, onCreado }: { abierto: boolean; onCerrar: () => void; onCreado: () => void }) {
+  const [usuario, setUsuario] = useState('')
   const [nombre, setNombre] = useState('')
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [rol, setRol] = useState<Rol>('editor')
+  const [rol, setRol] = useState<Rol>('operador')
   const [error, setError] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
 
   useEffect(() => {
     if (abierto) {
+      setUsuario('')
       setNombre('')
-      setEmail('')
       setPassword('')
-      setRol('editor')
+      setRol('operador')
       setError(null)
     }
   }, [abierto])
 
   async function onGuardar() {
-    if (!nombre.trim() || !email.trim() || !password) return setError('Completa todos los campos.')
-    if (password.length < LARGO_MINIMO_PASSWORD) return setError(`La contraseña necesita al menos ${LARGO_MINIMO_PASSWORD} caracteres.`)
+    if (!usuario.trim() || !password) return setError('El usuario y la contraseña son obligatorios.')
     setGuardando(true)
     setError(null)
     try {
-      await api.crearUsuario({ nombre: nombre.trim(), email: email.trim(), password, rol })
+      await api.crearUsuario({ usuario: usuario.trim(), nombre: nombre.trim(), password, rol, activo: true })
       toast.success('Usuario creado')
       onCreado()
     } catch (e) {
@@ -79,13 +82,13 @@ export function NuevoUsuarioModal({ abierto, onCerrar, onCreado }: { abierto: bo
       }
     >
       <div className="space-y-4">
-        <Field label="Nombre *">
-          <Input value={nombre} onChange={(e) => setNombre(e.target.value)} autoComplete="off" autoFocus />
+        <Field label="Usuario *" hint="Con el que inicia sesión. Se guarda en mayúsculas.">
+          <Input value={usuario} onChange={(e) => setUsuario(e.target.value.toUpperCase())} autoComplete="off" autoFocus />
         </Field>
-        <Field label="Email *" hint="Es con el que inicia sesión. Cada cuenta necesita uno distinto.">
-          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="off" />
+        <Field label="Nombre">
+          <Input value={nombre} onChange={(e) => setNombre(e.target.value)} autoComplete="off" />
         </Field>
-        <Field label="Contraseña *" hint={`Mínimo ${LARGO_MINIMO_PASSWORD} caracteres. Compártela por un canal seguro.`}>
+        <Field label="Contraseña inicial *" hint="Compártela por un canal seguro; la puede cambiar al entrar.">
           <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
         </Field>
         <SelectorDeRol valor={rol} onCambiar={setRol} />
@@ -142,28 +145,19 @@ export function UsuarioDetalleModal({
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-foreground">
-              {usuario.nombre} {esYo && <span className="text-xs font-normal text-muted-foreground">(tú)</span>}
+              {usuario.usuario} {esYo && <span className="text-xs font-normal text-muted-foreground">(tú)</span>}
             </h2>
-            <p className="text-sm text-muted-foreground">{usuario.email}</p>
+            <p className="text-sm text-muted-foreground">{usuario.nombre || 'Sin nombre'}</p>
           </div>
           <button onClick={esYo ? undefined : onToggleActivo} disabled={esYo} className={esYo ? 'cursor-default' : ''}>
             <Badge tono={usuario.activo ? 'success' : 'neutral'}>{usuario.activo ? 'Activo' : 'Inactivo'}</Badge>
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-xs text-muted-foreground">Rol</p>
-            <p className="text-foreground">{ROL_LABEL[usuario.rol]}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Alta</p>
-            <p className="text-foreground">{fechaHora(usuario.creado)}</p>
-          </div>
-          <div className="col-span-2">
-            <p className="text-xs text-muted-foreground">Último acceso</p>
-            <p className="text-foreground">{fechaHora(usuario.ultimoAcceso) || 'Nunca'}</p>
-          </div>
+        <div className="text-sm">
+          <p className="text-xs text-muted-foreground">Rol</p>
+          <p className="text-foreground">{ROL_LABEL[usuario.rol]}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{ROL_AYUDA[usuario.rol]}</p>
         </div>
 
         <p className="text-xs text-muted-foreground">
@@ -176,28 +170,38 @@ export function UsuarioDetalleModal({
   )
 }
 
-export function EditarUsuarioModal({ usuario, onCerrar, onGuardado }: { usuario: Perfil | null; onCerrar: () => void; onGuardado: () => void }) {
+export function EditarUsuarioModal({
+  usuario,
+  esYo,
+  onCerrar,
+  onGuardado,
+}: {
+  usuario: Perfil | null
+  esYo: boolean
+  onCerrar: () => void
+  onGuardado: () => void
+}) {
+  const [nuevoUsuario, setNuevoUsuario] = useState('')
   const [nombre, setNombre] = useState('')
-  const [email, setEmail] = useState('')
-  const [rol, setRol] = useState<Rol>('editor')
+  const [rol, setRol] = useState<Rol>('operador')
   const [error, setError] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
 
   useEffect(() => {
     if (!usuario) return
+    setNuevoUsuario(usuario.usuario)
     setNombre(usuario.nombre)
-    setEmail(usuario.email)
     setRol(usuario.rol)
     setError(null)
   }, [usuario])
 
   async function onGuardar() {
     if (!usuario) return
-    if (!nombre.trim() || !email.trim()) return setError('Completa todos los campos.')
+    if (!nuevoUsuario.trim()) return setError('El usuario es obligatorio.')
     setGuardando(true)
     setError(null)
     try {
-      await api.editarUsuario({ id: usuario.id, nombre: nombre.trim(), email: email.trim(), rol })
+      await api.actualizarUsuario(usuario.usuario, { usuario: nuevoUsuario.trim(), nombre: nombre.trim(), rol, activo: usuario.activo })
       toast.success('Usuario actualizado')
       onGuardado()
     } catch (e) {
@@ -210,7 +214,7 @@ export function EditarUsuarioModal({ usuario, onCerrar, onGuardado }: { usuario:
   return (
     <Modal
       abierto={usuario !== null}
-      titulo={`Editar usuario — ${usuario?.nombre ?? ''}`}
+      titulo={`Editar usuario — ${usuario?.usuario ?? ''}`}
       onCerrar={onCerrar}
       footer={
         <>
@@ -224,13 +228,16 @@ export function EditarUsuarioModal({ usuario, onCerrar, onGuardado }: { usuario:
       }
     >
       <div className="space-y-4">
-        <Field label="Nombre *">
-          <Input value={nombre} onChange={(e) => setNombre(e.target.value)} autoFocus />
+        <Field
+          label="Usuario *"
+          hint={esYo ? 'No puedes renombrar tu propio usuario mientras lo usas.' : 'Es con el que inicia sesión: cambiarlo cambia su login.'}
+        >
+          <Input value={nuevoUsuario} onChange={(e) => setNuevoUsuario(e.target.value.toUpperCase())} disabled={esYo} autoFocus />
         </Field>
-        <Field label="Email *" hint="Es el email con el que inicia sesión: cambiarlo cambia su login.">
-          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Field label="Nombre">
+          <Input value={nombre} onChange={(e) => setNombre(e.target.value)} />
         </Field>
-        <SelectorDeRol valor={rol} onCambiar={setRol} />
+        <SelectorDeRol valor={rol} onCambiar={setRol} disabled={esYo} />
         {error && <ErrorBox mensaje={error} />}
       </div>
     </Modal>
@@ -249,11 +256,11 @@ export function CambiarPasswordModal({ usuario, onCerrar }: { usuario: Perfil | 
 
   async function onGuardar() {
     if (!usuario) return
-    if (password.length < LARGO_MINIMO_PASSWORD) return setError(`Mínimo ${LARGO_MINIMO_PASSWORD} caracteres.`)
+    if (!password) return setError('Escribe la nueva contraseña.')
     setGuardando(true)
     try {
-      await api.passwordDeUsuario(usuario.id, password)
-      toast.success('Contraseña actualizada. Sus sesiones abiertas se cerraron.')
+      await api.actualizarUsuario(usuario.usuario, { ...usuario, password })
+      toast.success('Contraseña actualizada')
       onCerrar()
     } catch (e) {
       setError(mensaje(e, 'Error al cambiar la contraseña.'))
@@ -265,7 +272,7 @@ export function CambiarPasswordModal({ usuario, onCerrar }: { usuario: Perfil | 
   return (
     <Modal
       abierto={usuario !== null}
-      titulo={`Cambiar contraseña — ${usuario?.nombre ?? ''}`}
+      titulo={`Cambiar contraseña — ${usuario?.usuario ?? ''}`}
       onCerrar={onCerrar}
       ancho="max-w-sm"
       footer={
@@ -280,8 +287,8 @@ export function CambiarPasswordModal({ usuario, onCerrar }: { usuario: Perfil | 
       }
     >
       <div className="space-y-4">
-        <Field label="Nueva contraseña" hint={`Mínimo ${LARGO_MINIMO_PASSWORD} caracteres`}>
-          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
+        <Field label="Nueva contraseña">
+          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" autoFocus />
         </Field>
         {error && <ErrorBox mensaje={error} />}
       </div>

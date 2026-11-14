@@ -90,10 +90,10 @@ export const DEFAULT_CONFIG: SiteConfig = {
     { id: 'presskit', menu: 'Presskit', visible: true, orden: 10 },
   ],
   numeros: [
-    { valor: 100, prefijo: '+', etiqueta: 'Clubs' },
-    { valor: 60, prefijo: '+', etiqueta: 'Ciudades' },
-    { valor: 3, prefijo: '', etiqueta: 'Países' },
-    { valor: 500, prefijo: '+', etiqueta: 'Shows' },
+    { numero: 100, prefijo: '+', etiqueta: 'Clubs' },
+    { numero: 60, prefijo: '+', etiqueta: 'Ciudades' },
+    { numero: 3, prefijo: '', etiqueta: 'Países' },
+    { numero: 500, prefijo: '+', etiqueta: 'Shows' },
   ],
   paises: [
     { bandera: '🇦🇷', nombre: 'Argentina', regiones: 'Buenos Aires · Córdoba · Rosario', ciudades: '+30 ciudades' },
@@ -135,7 +135,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
 /** Un elemento vacío por lista: define columnas y tipos de cada pestaña. */
 export const LIST_TEMPLATES: { [K in keyof Listas]: Listas[K][number] } = {
   secciones: { id: 'numeros', menu: '', visible: true, orden: 0 },
-  numeros: { valor: 0, prefijo: '', etiqueta: '' },
+  numeros: { numero: 0, prefijo: '', etiqueta: '' },
   paises: { bandera: '', nombre: '', regiones: '', ciudades: '' },
   barras: { etiqueta: '', porcentaje: 0 },
   agenda: { fecha: '', lugar: '', ciudad: '', estado: 'Confirmado', entradas: '' },

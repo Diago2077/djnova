@@ -1,10 +1,12 @@
 import { Loader2, RotateCcw, Save } from 'lucide-react'
 import { NavLink, Navigate, useParams } from 'react-router-dom'
 import type { Ajustes } from '@/types'
+import { useAuth } from '../auth'
 import { useContenido } from '../contenido'
 import { Campo, EditorLista } from '../fields'
 import { cn } from '../lib/cn'
 import { PANELES } from '../schema'
+import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Card, CardBody, CardHeader } from '../ui/card'
 import { Cargando, ErrorBox } from '../ui/estado'
@@ -16,6 +18,7 @@ type Valor = string | number | boolean
 export default function Contenido() {
   const { panel: panelId } = useParams()
   const navigate = useNavigate()
+  const { puedeEditar } = useAuth()
   const { cfg, error, cambios, guardando, setAjuste, setLista, guardar, descartar } = useContenido()
 
   const panel = PANELES.find((p) => p.id === panelId)
@@ -58,6 +61,7 @@ export default function Contenido() {
             <h1 className="text-lg font-semibold text-foreground">{panel.titulo}</h1>
             {panel.descripcion && <p className="text-sm text-muted-foreground">{panel.descripcion}</p>}
           </div>
+          {puedeEditar ? (
           <div className="flex gap-2">
             {cambios && (
               <Button variant="outline" onClick={descartar} disabled={guardando}>
@@ -69,6 +73,9 @@ export default function Contenido() {
               {guardando ? 'Guardando…' : cambios ? 'Guardar y publicar' : 'Sin cambios'}
             </Button>
           </div>
+          ) : (
+            <Badge tono="warning">Solo lectura</Badge>
+          )}
         </div>
 
         {error ? (
@@ -76,7 +83,8 @@ export default function Contenido() {
         ) : !cfg ? (
           <Cargando texto="Cargando contenido…" />
         ) : (
-          <div className="space-y-5">
+          // Rol consulta: los controles quedan deshabilitados (fieldset disabled).
+          <fieldset disabled={!puedeEditar} className="min-w-0 space-y-5">
             {panel.grupos?.map((g) => (
               <Card key={g.grupo}>
                 {g.titulo && <CardHeader title={g.titulo} />}
@@ -97,7 +105,7 @@ export default function Contenido() {
                 <EditorLista def={l} items={cfg[l.key] as unknown as Record<string, Valor>[]} onChange={(items) => setLista(l.key, items)} />
               </Card>
             ))}
-          </div>
+          </fieldset>
         )}
       </section>
     </div>

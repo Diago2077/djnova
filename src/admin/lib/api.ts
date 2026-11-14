@@ -2,47 +2,64 @@ import { ApiError, DEMO, LS, post, readLS, writeLS } from '@/lib/api'
 import { toTablas } from '@/lib/tables'
 import type { Contratacion, SiteConfig } from '@/types'
 
-export type Rol = 'admin' | 'editor'
+// Cliente del backend con la estructura de Pedidos ON: no hay token, cada
+// llamada lleva { usuario, password } y el Apps Script las valida (con caché
+// de 5 min). Una sesión caída vuelve con codigo 'SESION'.
+
+export type Rol = 'admin' | 'operador' | 'consulta'
 
 export interface Perfil {
-  id: string
+  usuario: string
   nombre: string
-  email: string
   rol: Rol
   activo: boolean
-  creado?: string
-  ultimoAcceso?: string
 }
 
-export const ROL_LABEL: Record<Rol, string> = { admin: 'Administrador', editor: 'Editor' }
-export const LARGO_MINIMO_PASSWORD = 8
+export const ROL_LABEL: Record<Rol, string> = { admin: 'Administrador', operador: 'Operador', consulta: 'Consulta' }
+export const ROL_AYUDA: Record<Rol, string> = {
+  admin: 'Control total, incluida la gestión de usuarios.',
+  operador: 'Edita el contenido de la web y gestiona las contrataciones.',
+  consulta: 'Solo lectura: ve el contenido y las contrataciones.',
+}
+export const ESTADOS_CONTRATACION = ['Nuevo', 'Contactado', 'Negociando', 'Cerrado', 'Descartado'] as const
 
 /** Se dispara cuando el servidor dice que la sesión ya no vale. */
 export const EVENTO_SESION_CADUCADA = 'djnova:sesion-caducada'
 
-export function getToken(): string | null {
+interface Sesion {
+  usuario: string
+  password: string
+}
+
+// sessionStorage: las credenciales se olvidan al cerrar la pestaña.
+function leerSesion(): Sesion | null {
   try {
-    return localStorage.getItem(LS.token)
+    const raw = sessionStorage.getItem(LS.sesion)
+    return raw ? (JSON.parse(raw) as Sesion) : null
   } catch {
     return null
   }
 }
-export function setToken(t: string | null) {
+function guardarSesion(s: Sesion | null) {
   try {
-    if (t) localStorage.setItem(LS.token, t)
-    else localStorage.removeItem(LS.token)
+    if (s) sessionStorage.setItem(LS.sesion, JSON.stringify(s))
+    else sessionStorage.removeItem(LS.sesion)
   } catch {
     /* noop */
   }
 }
+export function haySesion() {
+  return !!leerSesion()
+}
 
 async function llamar<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+  const s = leerSesion()
   try {
-    if (DEMO) return demo(action, payload) as T
-    return await post<T>({ action, token: getToken(), ...payload })
+    if (DEMO) return demo(action, { ...payload, ...s }) as T
+    return await post<T>({ action, ...s, ...payload })
   } catch (e) {
-    if (e instanceof ApiError && e.code === 'AUTH') {
-      setToken(null)
+    if (e instanceof ApiError && e.codigo === 'SESION') {
+      guardarSesion(null)
       window.dispatchEvent(new Event(EVENTO_SESION_CADUCADA))
     }
     throw e
@@ -51,34 +68,43 @@ async function llamar<T>(action: string, payload: Record<string, unknown> = {}):
 
 // ---------------------------------------------------------------- Sesión
 
-export async function login(email: string, password: string): Promise<Perfil> {
-  const r = await llamar<{ token: string; perfil: Perfil }>('login', { email, password })
-  setToken(r.token)
-  return r.perfil
+export async function login(usuario: string, password: string): Promise<Perfil> {
+  const r = await llamar<{ usuario: string; nombre: string; rol: Rol }>('login', { usuario, password })
+  guardarSesion({ usuario: r.usuario, password })
+  return { usuario: r.usuario, nombre: r.nombre, rol: r.rol, activo: true }
 }
 
-export async function yo(): Promise<Perfil> {
-  return (await llamar<{ perfil: Perfil }>('me')).perfil
-}
-
-export async function logout() {
+/** Vuelve a validar las credenciales guardadas (al recargar el admin). */
+export async function yo(): Promise<Perfil | null> {
+  const s = leerSesion()
+  if (!s) return null
   try {
-    await llamar('logout')
+    return await login(s.usuario, s.password)
   } catch {
-    /* si ya caducó da igual */
+    guardarSesion(null)
+    return null
   }
-  setToken(null)
 }
 
-export async function cambiarMiPassword(actual: string, nueva: string) {
-  await llamar('miPassword', { actual, nueva })
+export function logout() {
+  guardarSesion(null)
 }
 
-// ---------------------------------------------------------------- Contenido
+export async function cambiarMiPassword(nuevaPassword: string) {
+  await llamar('cambiarMiPassword', { nuevaPassword })
+  const s = leerSesion()
+  if (s) guardarSesion({ ...s, password: nuevaPassword })
+}
+
+export async function revisiones(): Promise<Record<string, number>> {
+  return (await llamar<{ revisiones: Record<string, number> }>('getRevisions')).revisiones
+}
+
+// ---------------------------------------------------------------- Contenido de la web
 
 export async function guardarConfig(cfg: SiteConfig) {
   const tablas = toTablas(cfg)
-  await llamar('save', { tablas })
+  await llamar('guardarSitio', { tablas })
   writeLS(DEMO ? LS.demoConfig : LS.cache, tablas)
 }
 
@@ -91,15 +117,17 @@ function fileToBase64(file: File): Promise<string> {
   })
 }
 
-/** Sube un archivo a la carpeta de Google Drive y devuelve su URL pública. */
+export const MAX_ARCHIVO_MB = 20
+
+/** Sube un archivo a la carpeta de Drive de la app y devuelve su URL pública. */
 export async function subirArchivo(file: File): Promise<string> {
   if (DEMO) return URL.createObjectURL(file) // solo se ve en esta sesión
-  if (file.size > 25 * 1024 * 1024) {
-    throw new ApiError('El archivo supera 25 MB. Para videos usa YouTube o un enlace externo.')
+  if (file.size > MAX_ARCHIVO_MB * 1024 * 1024) {
+    throw new ApiError(`El archivo supera los ${MAX_ARCHIVO_MB} MB. Para videos usa YouTube o un enlace externo.`)
   }
   const base64 = await fileToBase64(file)
-  const { url } = await llamar<{ url: string }>('upload', {
-    name: file.name,
+  const { url } = await llamar<{ url: string }>('subirArchivo', {
+    nombre: file.name,
     mime: file.type || 'application/octet-stream',
     base64,
   })
@@ -109,37 +137,45 @@ export async function subirArchivo(file: File): Promise<string> {
 // ---------------------------------------------------------------- Contrataciones
 
 export async function listarContrataciones(): Promise<Contratacion[]> {
-  return (await llamar<{ items: Contratacion[] }>('bookings')).items
+  return (await llamar<{ contrataciones: Contratacion[] }>('listContrataciones')).contrataciones
 }
 
-export async function cambiarEstadoContratacion(fila: number, estado: string) {
-  await llamar('bookingStatus', { fila, estado })
+export async function cambiarEstadoContratacion(id: string, estado: string) {
+  await llamar('cambiarEstadoContratacion', { id, estado })
 }
 
 // ---------------------------------------------------------------- Usuarios (solo admin)
 
 export async function listarUsuarios(): Promise<Perfil[]> {
-  return (await llamar<{ items: Perfil[] }>('usuarios')).items
+  return (await llamar<{ usuarios: Perfil[] }>('listUsuarios')).usuarios
 }
-export async function crearUsuario(p: { nombre: string; email: string; password: string; rol: Rol }) {
-  await llamar('usuarioCrear', p)
+
+export async function crearUsuario(p: { usuario: string; nombre: string; password: string; rol: Rol; activo: boolean }) {
+  await llamar('createUsuario', { nuevoUsuario: p.usuario, nuevaPassword: p.password, nombre: p.nombre, rol: p.rol, activo: p.activo })
 }
-export async function editarUsuario(p: { id: string; nombre: string; email: string; rol: Rol }) {
-  await llamar('usuarioEditar', p)
+
+/** Edita un usuario. `password` vacío = no se cambia. */
+export async function actualizarUsuario(
+  target: string,
+  p: { usuario: string; nombre: string; rol: Rol; activo: boolean; password?: string },
+) {
+  await llamar('updateUsuario', {
+    targetUsuario: target,
+    nuevoUsuario: p.usuario,
+    nombre: p.nombre,
+    rol: p.rol,
+    activo: p.activo,
+    nuevaPassword: p.password ?? '',
+  })
 }
-export async function activarUsuario(id: string, activo: boolean) {
-  await llamar('usuarioActivo', { id, activo })
-}
-export async function passwordDeUsuario(id: string, password: string) {
-  await llamar('usuarioPassword', { id, password })
-}
-export async function eliminarUsuario(id: string) {
-  await llamar('usuarioEliminar', { id })
+
+export async function eliminarUsuario(usuario: string) {
+  await llamar('deleteUsuario', { targetUsuario: usuario })
 }
 
 // ---------------------------------------------------------------- Modo demo
-// Simula el backend en localStorage para poder probar el admin sin Google Sheets.
-// Las contraseñas se guardan en claro: SOLO para pruebas locales.
+// Simula el Apps Script en localStorage para probar el admin sin Google Sheets.
+// Igual que en la hoja real, las contraseñas quedan en claro: SOLO para pruebas.
 
 type UsuarioDemo = Perfil & { password: string }
 
@@ -147,90 +183,86 @@ function demo(action: string, p: Record<string, unknown>): unknown {
   const users = readLS<UsuarioDemo[]>(LS.demoUsers) ?? []
   const guardar = () => writeLS(LS.demoUsers, users)
   const publico = ({ password: _pw, ...u }: UsuarioDemo): Perfil => u
-  const actual = users.find((u) => u.id === getToken())
-  const exigir = (admin = false) => {
-    if (!actual || !actual.activo) throw new ApiError('Sesión caducada. Vuelve a entrar.', 'AUTH')
-    if (admin && actual.rol !== 'admin') throw new ApiError('No tienes permiso para esta operación.')
-    return actual
-  }
-  const buscar = (id: unknown) => {
-    const u = users.find((x) => x.id === id)
-    if (!u) throw new ApiError('Usuario no encontrado.')
+  const porNombre = (n: unknown) => users.find((u) => u.usuario === String(n ?? '').trim().toUpperCase())
+  const auth = (roles?: Rol[]) => {
+    const u = porNombre(p.usuario)
+    if (!u || u.password !== p.password || !u.activo) throw new ApiError('Sesión no válida. Vuelve a iniciar sesión.', 'SESION')
+    if (roles && !roles.includes(u.rol)) throw new ApiError('No autorizado para esta acción.')
     return u
   }
-  const email = String(p.email ?? '').trim().toLowerCase()
+  const adminsActivos = () => users.filter((u) => u.rol === 'admin' && u.activo).length
 
   switch (action) {
     case 'login': {
       if (!users.length) {
-        users.push({ id: crypto.randomUUID(), nombre: 'Administrador', email, rol: 'admin', activo: true, password: String(p.password), creado: new Date().toISOString() })
+        users.push({ usuario: String(p.usuario).trim().toUpperCase(), password: String(p.password), rol: 'admin', activo: true, nombre: 'Administrador' })
         guardar()
       }
-      const u = users.find((x) => x.email === email && x.password === p.password)
-      if (!u) throw new ApiError('Email o contraseña incorrectos.')
-      if (!u.activo) throw new ApiError('Tu usuario está desactivado. Contacta al administrador.')
-      u.ultimoAcceso = new Date().toISOString()
-      guardar()
-      return { token: u.id, perfil: publico(u) }
+      const u = porNombre(p.usuario)
+      if (!u || u.password !== p.password || !u.activo) throw new ApiError('Usuario o contraseña incorrectos')
+      return { usuario: u.usuario, nombre: u.nombre, rol: u.rol }
     }
-    case 'me':
-      return { perfil: publico(exigir()) }
-    case 'logout':
-      return { ok: true }
-    case 'miPassword': {
-      const u = exigir()
-      if (u.password !== p.actual) throw new ApiError('La contraseña actual no es correcta.')
-      u.password = String(p.nueva)
+    case 'getRevisions':
+      auth()
+      return { revisiones: {} }
+    case 'cambiarMiPassword': {
+      const u = auth()
+      u.password = String(p.nuevaPassword)
       guardar()
-      return { ok: true }
+      return {}
     }
-    case 'save':
-      exigir()
-      return { ok: true }
-    case 'bookings':
-      exigir()
-      return { items: readLS<Contratacion[]>(LS.demoBookings) ?? [] }
-    case 'bookingStatus': {
-      exigir()
+    case 'guardarSitio':
+      auth(['admin', 'operador'])
+      return {}
+    case 'listContrataciones':
+      auth()
+      return { contrataciones: readLS<Contratacion[]>(LS.demoBookings) ?? [] }
+    case 'cambiarEstadoContratacion': {
+      auth(['admin', 'operador'])
       const list = readLS<Contratacion[]>(LS.demoBookings) ?? []
-      writeLS(LS.demoBookings, list.map((b) => (b.fila === p.fila ? { ...b, estado: String(p.estado) } : b)))
-      return { ok: true }
+      writeLS(LS.demoBookings, list.map((b) => (b.id === p.id ? { ...b, estado: String(p.estado) } : b)))
+      return {}
     }
-    case 'usuarios':
-      exigir(true)
-      return { items: users.map(publico) }
-    case 'usuarioCrear':
-      exigir(true)
-      if (users.some((u) => u.email === email)) throw new ApiError('Ya existe un usuario con ese email.')
-      users.push({ id: crypto.randomUUID(), nombre: String(p.nombre), email, rol: p.rol as Rol, activo: true, password: String(p.password), creado: new Date().toISOString() })
+    case 'listUsuarios':
+      auth(['admin'])
+      return { usuarios: users.map(publico) }
+    case 'createUsuario': {
+      auth(['admin'])
+      if (porNombre(p.nuevoUsuario)) throw new ApiError('Ya existe un usuario con ese nombre.')
+      users.push({
+        usuario: String(p.nuevoUsuario).trim().toUpperCase(),
+        password: String(p.nuevaPassword),
+        rol: p.rol as Rol,
+        activo: p.activo !== false,
+        nombre: String(p.nombre ?? ''),
+      })
       guardar()
-      return { ok: true }
-    case 'usuarioEditar': {
-      const yo = exigir(true)
-      const u = buscar(p.id)
-      if (u.id === yo.id && p.rol !== 'admin') throw new ApiError('No puedes quitarte tu propio rol de administrador.')
-      Object.assign(u, { nombre: p.nombre, email, rol: p.rol })
-      guardar()
-      return { ok: true }
+      return {}
     }
-    case 'usuarioActivo': {
-      const yo = exigir(true)
-      if (p.id === yo.id) throw new ApiError('No puedes desactivar tu propia cuenta.')
-      buscar(p.id).activo = !!p.activo
+    case 'updateUsuario': {
+      auth(['admin'])
+      const u = porNombre(p.targetUsuario)
+      if (!u) throw new ApiError('El usuario ya no existe.')
+      const activo = p.activo !== false
+      if (u.rol === 'admin' && u.activo && !(p.rol === 'admin' && activo) && adminsActivos() <= 1) {
+        throw new ApiError('No puedes quitar el último Admin activo.')
+      }
+      const nuevo = String(p.nuevoUsuario ?? '').trim().toUpperCase()
+      if (nuevo && nuevo !== u.usuario && porNombre(nuevo)) throw new ApiError('Ya existe un usuario con ese nombre.')
+      Object.assign(u, { usuario: nuevo || u.usuario, nombre: String(p.nombre ?? ''), rol: p.rol, activo })
+      if (p.nuevaPassword) u.password = String(p.nuevaPassword)
       guardar()
-      return { ok: true }
+      return { usuario: u.usuario }
     }
-    case 'usuarioPassword':
-      exigir(true)
-      buscar(p.id).password = String(p.password)
+    case 'deleteUsuario': {
+      const yo = auth(['admin'])
+      const u = porNombre(p.targetUsuario)
+      if (!u) throw new ApiError('El usuario ya no existe.')
+      if (u.usuario === yo.usuario) throw new ApiError('No puedes borrarte a ti mismo.')
+      if (u.rol === 'admin' && u.activo && adminsActivos() <= 1) throw new ApiError('No puedes borrar el último Admin activo.')
+      users.splice(users.indexOf(u), 1)
       guardar()
-      return { ok: true }
-    case 'usuarioEliminar': {
-      const yo = exigir(true)
-      if (p.id === yo.id) throw new ApiError('No puedes eliminar tu propia cuenta.')
-      users.splice(users.indexOf(buscar(p.id)), 1)
-      guardar()
-      return { ok: true }
+      return {}
     }
     default:
       throw new ApiError('Acción desconocida')

@@ -3,15 +3,17 @@ import { toast } from 'sonner'
 import * as api from './lib/api'
 import type { Perfil } from './lib/api'
 
-// Adaptado de contable/src/hooks/useAuth.tsx: misma forma de contexto, pero la
-// sesión la valida el Apps Script de la Google Sheet en vez de Supabase Auth.
+// Misma forma de contexto que contable/src/hooks/useAuth.tsx; la sesión sigue
+// el modelo de Pedidos ON (usuario + contraseña validados en cada llamada).
 
 interface AuthState {
   perfil: Perfil | null
   loading: boolean
   esAdmin: boolean
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>
-  signOut: () => Promise<void>
+  /** admin u operador: puede guardar contenido y cambiar contrataciones. */
+  puedeEditar: boolean
+  signIn: (usuario: string, password: string) => Promise<{ error: string | null }>
+  signOut: () => void
   refrescarPerfil: () => Promise<void>
 }
 
@@ -22,28 +24,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const refrescarPerfil = useCallback(async () => {
-    if (!api.getToken()) {
-      setPerfil(null)
-      return
-    }
-    try {
-      setPerfil(await api.yo())
-    } catch {
-      setPerfil(null)
-    }
+    setPerfil(await api.yo())
   }, [])
 
-  // Restaura la sesión guardada al abrir el admin (F5 o URL directa).
+  // Restaura la sesión de esta pestaña al recargar el admin.
   useEffect(() => {
     refrescarPerfil().finally(() => setLoading(false))
   }, [refrescarPerfil])
 
-  // Si cualquier llamada responde "sesión caducada" (desactivado, contraseña
-  // cambiada, 6 h sin uso…), se vuelve al login en vez de fallar a medias.
+  // Si cualquier llamada responde codigo 'SESION' (contraseña cambiada, usuario
+  // desactivado o borrado), se vuelve al login en vez de fallar a medias.
   useEffect(() => {
     const onCaducada = () => {
       setPerfil((p) => {
-        if (p) toast.error('Tu sesión caducó. Vuelve a entrar.')
+        if (p) toast.error('Tu sesión ya no es válida. Vuelve a entrar.')
         return null
       })
     }
@@ -51,22 +45,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(api.EVENTO_SESION_CADUCADA, onCaducada)
   }, [])
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (usuario: string, password: string) => {
     try {
-      setPerfil(await api.login(email.trim(), password))
+      setPerfil(await api.login(usuario.trim(), password))
       return { error: null }
     } catch (e) {
       return { error: e instanceof Error ? e.message : 'No se pudo iniciar sesión. Inténtalo de nuevo.' }
     }
   }, [])
 
-  const signOut = useCallback(async () => {
-    await api.logout()
+  const signOut = useCallback(() => {
+    api.logout()
     setPerfil(null)
   }, [])
 
   const valor = useMemo<AuthState>(
-    () => ({ perfil, loading, esAdmin: perfil?.rol === 'admin', signIn, signOut, refrescarPerfil }),
+    () => ({
+      perfil,
+      loading,
+      esAdmin: perfil?.rol === 'admin',
+      puedeEditar: perfil?.rol === 'admin' || perfil?.rol === 'operador',
+      signIn,
+      signOut,
+      refrescarPerfil,
+    }),
     [perfil, loading, signIn, signOut, refrescarPerfil],
   )
 

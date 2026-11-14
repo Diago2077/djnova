@@ -169,7 +169,7 @@ export const PANELES: Panel[] = [
         resumen: 'etiqueta',
         fields: [
           { key: 'prefijo', label: 'Prefijo (ej. +)' },
-          { key: 'valor', label: 'Valor', type: 'number' },
+          { key: 'numero', label: 'Número', type: 'number' },
           { key: 'etiqueta', label: 'Etiqueta' },
         ],
       },

@@ -13,7 +13,7 @@ export default function Login() {
   const { perfil, loading, signIn } = useAuth()
   const navigate = useNavigate()
 
-  const [email, setEmail] = useState('')
+  const [usuario, setUsuario] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
@@ -28,7 +28,7 @@ export default function Login() {
     if (enviando) return
     setError(null)
     setEnviando(true)
-    const { error: err } = await signIn(email, password)
+    const { error: err } = await signIn(usuario, password)
     setEnviando(false)
     if (err) setError(err)
     else navigate('/admin', { replace: true })
@@ -45,19 +45,19 @@ export default function Login() {
 
         {DEMO && (
           <div className="mb-4 rounded-md border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-foreground">
-            <strong>Modo demo</strong>: falta <code>VITE_API_URL</code>. Los datos quedan solo en este navegador. La primera
-            cuenta que entre se crea como administrador.
+            <strong>Modo demo</strong>: falta <code>VITE_API_URL</code>. Los datos quedan solo en este navegador. El primer
+            usuario que entre se crea como administrador.
           </div>
         )}
 
         <form onSubmit={onSubmit} className="space-y-4 rounded-lg border border-border bg-card p-6 shadow-xs">
-          <Field label="Email">
+          <Field label="Usuario">
             <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="tu@email.com"
-              autoComplete="email"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value.toUpperCase())}
+              placeholder="ADMIN"
+              autoComplete="username"
+              autoCapitalize="characters"
               required
               autoFocus
             />
