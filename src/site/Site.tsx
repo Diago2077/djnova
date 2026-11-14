@@ -157,11 +157,14 @@ function Contenido({ cfg }: { cfg: SiteConfig }) {
       {!dentro && (
         <div className="gate">
           <div className="gate-glow" />
-          {ajustes.marca.logo ? (
-            <img className="gate-logo" src={ajustes.marca.logo} alt={ajustes.marca.nombre} />
-          ) : (
-            <h1 className="gate-name">{ajustes.marca.nombre}</h1>
-          )}
+          {/* Caja cuadrada como la de la referencia: el nombre/logo va centrado y flota */}
+          <div className="gate-marca">
+            {ajustes.marca.logo ? (
+              <img className="gate-logo" src={ajustes.marca.logo} alt={ajustes.marca.nombre} />
+            ) : (
+              <h1 className="gate-name">{ajustes.marca.nombre}</h1>
+            )}
+          </div>
           {ajustes.marca.apodo && <p className="gate-apodo">{ajustes.marca.apodo}</p>}
           <button className="btn btn-accent" onClick={entrar}>
             <IconoPlay /> {ajustes.entrada.boton}
