@@ -27,10 +27,19 @@ export interface FieldDef {
   accept?: string
 }
 
+/** Recuadro de pasos que solo se muestra mientras `cuando` devuelva true (p. ej. campo aún vacío). */
+export interface GuiaDef {
+  cuando: (valores: Record<string, string | number | boolean>) => boolean
+  titulo: string
+  pasos: string[]
+  enlace?: { texto: string; url: string }
+}
+
 export interface GrupoDef {
   grupo: keyof Ajustes
   titulo?: string
   fields: FieldDef[]
+  guia?: GuiaDef
 }
 
 export interface ListaDef {
@@ -334,11 +343,28 @@ export const PANELES: Panel[] = [
       {
         grupo: 'instagram',
         titulo: 'Instagram',
+        guia: {
+          cuando: (v) => !String(v.feed ?? '').trim(),
+          titulo: 'Cómo mostrar tus últimos posts automáticamente',
+          pasos: [
+            'Crea una cuenta gratuita en behold.so.',
+            'Conecta tu Instagram. La cuenta debe ser profesional (Creador o Empresa); si no lo es, se cambia en Instagram → Configuración → Tipo de cuenta.',
+            'Crea un feed nuevo y elige la salida «JSON» (los nombres exactos pueden variar un poco).',
+            'Copia la URL del feed (empieza por https://feeds.behold.so/) y pégala en «Feed automático».',
+            'Pulsa «Guardar y publicar». Desde ahí la web muestra tu foto, bio, seguidores y los últimos 6 posts, y se actualiza sola.',
+          ],
+          enlace: { texto: 'Abrir behold.so', url: 'https://behold.so' },
+        },
         fields: [
           { key: 'etiqueta', label: 'Etiqueta superior' },
-          { key: 'usuario', label: 'Usuario (sin @)' },
-          { key: 'descripcion', label: 'Descripción' },
-          { key: 'seguidores', label: 'Seguidores (texto, ej. 8,4K)' },
+          {
+            key: 'feed',
+            label: 'Feed automático (Behold)',
+            help: 'Pega aquí el enlace del feed (https://feeds.behold.so/…). Si lo dejas vacío se usa la tarjeta manual de abajo.',
+          },
+          { key: 'usuario', label: 'Usuario (sin @)', help: 'Solo si no usas el feed automático.' },
+          { key: 'descripcion', label: 'Descripción', help: 'Solo si no usas el feed automático.' },
+          { key: 'seguidores', label: 'Seguidores (texto, ej. 8,4K)', help: 'Solo si no usas el feed automático.' },
         ],
       },
       {

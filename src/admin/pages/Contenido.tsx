@@ -1,11 +1,11 @@
-import { Loader2, RotateCcw, Save } from 'lucide-react'
+import { ExternalLink, Info, Loader2, RotateCcw, Save } from 'lucide-react'
 import { NavLink, Navigate, useParams } from 'react-router-dom'
 import type { Ajustes } from '@/types'
 import { useAuth } from '../auth'
 import { useContenido } from '../contenido'
 import { Campo, EditorLista } from '../fields'
 import { cn } from '../lib/cn'
-import { PANELES } from '../schema'
+import { PANELES, type GuiaDef } from '../schema'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Card, CardBody, CardHeader } from '../ui/card'
@@ -14,6 +14,31 @@ import { Select } from '../ui/field'
 import { useNavigate } from 'react-router-dom'
 
 type Valor = string | number | boolean
+
+function Guia({ guia }: { guia: GuiaDef }) {
+  return (
+    <div className="rounded-md border border-primary/30 bg-primary/5 p-4 text-sm">
+      <p className="flex items-center gap-2 font-medium text-foreground">
+        <Info className="size-4 shrink-0 text-primary" /> {guia.titulo}
+      </p>
+      <ol className="mt-2 list-decimal space-y-1 pl-9 text-muted-foreground">
+        {guia.pasos.map((p) => (
+          <li key={p}>{p}</li>
+        ))}
+      </ol>
+      {guia.enlace && (
+        <a
+          href={guia.enlace.url}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex items-center gap-1.5 pl-9 text-sm font-medium text-primary hover:underline"
+        >
+          {guia.enlace.texto} <ExternalLink className="size-3.5" />
+        </a>
+      )}
+    </div>
+  )
+}
 
 export default function Contenido() {
   const { panel: panelId } = useParams()
@@ -89,6 +114,7 @@ export default function Contenido() {
               <Card key={g.grupo}>
                 {g.titulo && <CardHeader title={g.titulo} />}
                 <CardBody className="grid gap-4">
+                  {g.guia?.cuando(cfg.ajustes[g.grupo] as unknown as Record<string, Valor>) && <Guia guia={g.guia} />}
                   {g.fields.map((f) => (
                     <Campo
                       key={f.key}

@@ -68,7 +68,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
       formularioTitulo: 'Solicita tu fecha',
       formularioGracias: '¡Gracias! Te contactaremos muy pronto.',
     },
-    instagram: { etiqueta: 'Backstage', usuario: '', descripcion: '', seguidores: '' },
+    instagram: { etiqueta: 'Backstage', feed: '', usuario: '', descripcion: '', seguidores: '' },
     presskit: { etiqueta: 'Para productores', titulo: 'Presskit', boton: 'Descargar presskit', url: '' },
     footer: { texto: '© {año} TU NOMBRE — Todos los derechos reservados' },
     seo: {

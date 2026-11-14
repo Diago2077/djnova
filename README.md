@@ -36,6 +36,14 @@ npm run dev
 dé 404 al recargar), cachea `/assets/*` para siempre (llevan hash) y marca
 `/admin` como `noindex` y no embebible.
 
+## Instagram automático (opcional)
+
+Instagram no tiene una API pública sin cuenta, así que la web usa el servicio
+**Behold** (como la web de referencia): conectas tu cuenta profesional de Instagram en
+behold.so, creas un feed JSON y pegas su enlace en `/admin → Instagram, presskit y pie →
+Feed automático`. La web muestra entonces la foto, bio, seguidores y los últimos 6 posts, y se
+actualiza sola. Sin feed (o si falla) se muestra la tarjeta manual con usuario y descripción.
+
 ## Estructura
 
 ```

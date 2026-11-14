@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { enviarContratacion } from '../lib/api'
+import { formatoSeguidores, useInstagram } from '../lib/instagram'
 import { useMedia } from '../lib/media'
 import { Bandera, IconoCerrar, IconoDescarga, IconoPlay } from './icons'
 import { diaMes, parseFecha, spotifyEmbed, textoAnio, whatsappLink, youtubeId } from '../lib/utils'
@@ -583,8 +585,67 @@ export function Contratacion({ cfg }: P) {
 // ---------------------------------------------------------------- Instagram
 export function Instagram({ cfg }: P) {
   const a = cfg.ajustes.instagram
-  const usuario = a.usuario.replace(/^@/, '').trim()
+  const { perfil, estado } = useInstagram(a.feed)
+  const usuario = (perfil?.usuario || a.usuario).replace(/^@/, '').trim()
+
+  // Al llegar el feed la sección crece: las animaciones por scroll de las de abajo deben recalcularse.
+  useEffect(() => {
+    if (perfil) ScrollTrigger.refresh()
+  }, [perfil])
+
+  if (estado === 'cargando') return null
   if (!usuario) return null
+
+  // Con feed: perfil + últimos posts, como en la web de referencia.
+  if (perfil) {
+    return (
+      <Seccion id="instagram">
+        <Cabecera etiqueta={a.etiqueta} titulo="Instagram" />
+        <div className="ig-perfil reveal">
+          <a className="ig-avatar" href={`https://instagram.com/${usuario}`} target="_blank" rel="noreferrer">
+            {perfil.foto ? (
+              <img src={perfil.foto} alt={usuario} referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.display = 'none')} />
+            ) : null}
+            <span aria-hidden="true">{usuario.slice(0, 1).toUpperCase()}</span>
+          </a>
+          <div className="ig-info">
+            <a className="ig-usuario" href={`https://instagram.com/${usuario}`} target="_blank" rel="noreferrer">
+              @{usuario}
+            </a>
+            {perfil.bio && <p className="ig-bio">{perfil.bio}</p>}
+            <p className="ig-cifras">
+              {perfil.seguidores !== null && (
+                <span>
+                  <b>{formatoSeguidores(perfil.seguidores)}</b> seguidores
+                </span>
+              )}
+              {perfil.posts.length > 0 && (
+                <span>
+                  <b>{perfil.posts.length}</b> posts recientes
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+        {perfil.posts.length > 0 && (
+          <div className="ig-grid stagger">
+            {perfil.posts.map((p) => (
+              <a key={p.id} className="ig-post" href={p.permalink} target="_blank" rel="noreferrer" aria-label={p.texto.slice(0, 80) || 'Ver en Instagram'}>
+                <img src={p.imagen} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                {p.tipo === 'VIDEO' && (
+                  <span className="ig-play" aria-hidden="true">
+                    <IconoPlay />
+                  </span>
+                )}
+              </a>
+            ))}
+          </div>
+        )}
+      </Seccion>
+    )
+  }
+
+  // Sin feed (o si falló): tarjeta manual con los datos escritos en el /admin.
   return (
     <Seccion id="instagram">
       <Cabecera etiqueta={a.etiqueta} titulo="Instagram" />
