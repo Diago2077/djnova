@@ -105,7 +105,10 @@ export async function revisiones(): Promise<Record<string, number>> {
 export async function guardarConfig(cfg: SiteConfig) {
   const tablas = toTablas(cfg)
   await llamar('guardarSitio', { tablas })
-  writeLS(DEMO ? LS.demoConfig : LS.cache, tablas)
+  const ok = writeLS(DEMO ? LS.demoConfig : LS.cache, tablas)
+  if (DEMO && !ok) {
+    throw new ApiError('No cabe en el almacenamiento del navegador (modo demo). Usa archivos más pequeños o enlaces externos.')
+  }
 }
 
 function fileToBase64(file: File): Promise<string> {
@@ -118,10 +121,19 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export const MAX_ARCHIVO_MB = 20
+const MAX_DEMO_MB = 2
 
 /** Sube un archivo a la carpeta de Drive de la app y devuelve su URL pública. */
 export async function subirArchivo(file: File): Promise<string> {
-  if (DEMO) return URL.createObjectURL(file) // solo se ve en esta sesión
+  if (DEMO) {
+    // Sin servidor: el archivo se guarda dentro del propio contenido (data URL) para que
+    // sobreviva a recargas y lo vea la web pública. Un blob: moriría al cambiar de página.
+    if (file.size > MAX_DEMO_MB * 1024 * 1024) {
+      throw new ApiError(`En modo demo el límite es ${MAX_DEMO_MB} MB (se guarda en el navegador). Con la hoja conectada son ${MAX_ARCHIVO_MB} MB.`)
+    }
+    const base64 = await fileToBase64(file)
+    return `data:${file.type || 'application/octet-stream'};base64,${base64}`
+  }
   if (file.size > MAX_ARCHIVO_MB * 1024 * 1024) {
     throw new ApiError(`El archivo supera los ${MAX_ARCHIVO_MB} MB. Para videos usa YouTube o un enlace externo.`)
   }

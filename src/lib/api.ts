@@ -28,12 +28,13 @@ export function readLS<T>(key: string): T | null {
     return null
   }
 }
-export function writeLS(key: string, value: unknown) {
+export function writeLS(key: string, value: unknown): boolean {
   try {
     if (value === null) localStorage.removeItem(key)
     else localStorage.setItem(key, JSON.stringify(value))
+    return true
   } catch {
-    /* almacenamiento no disponible */
+    return false // almacenamiento no disponible o lleno
   }
 }
 
