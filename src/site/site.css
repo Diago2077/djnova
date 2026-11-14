@@ -197,10 +197,24 @@ h3 {
   transition: background 0.4s, padding 0.4s, backdrop-filter 0.4s;
 }
 .nav-solid {
+  padding-block: 12px;
+}
+/* El fondo translúcido va en un pseudo-elemento: un backdrop-filter en .nav haría que
+   el menú móvil (position: fixed) se calculase respecto a la barra y no a la pantalla. */
+.nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: color-mix(in srgb, var(--bg) 82%, transparent);
   backdrop-filter: blur(14px);
-  padding-block: 12px;
   border-bottom: 1px solid var(--line);
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+.nav-solid::before {
+  opacity: 1;
 }
 .nav-brand {
   text-decoration: none;
@@ -248,18 +262,24 @@ h3 {
 }
 /* Con 9-10 enlaces el menú no entra en anchos medios: pasa a hamburguesa antes. */
 @media (max-width: 1180px) {
+  .nav-toggle,
+  .nav-brand {
+    position: relative;
+    z-index: 2; /* por encima del menú a pantalla completa */
+  }
   .nav-toggle {
     display: block;
-    position: relative;
-    z-index: 2;
   }
   .nav-links {
     position: fixed;
     inset: 0;
+    height: 100dvh;
     flex-direction: column;
     justify-content: center;
     gap: 28px;
-    background: color-mix(in srgb, var(--bg) 96%, transparent);
+    padding: 80px 24px 40px;
+    overflow-y: auto;
+    background: var(--bg);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.35s;

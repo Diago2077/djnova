@@ -54,6 +54,22 @@ export function Nav({ cfg, secciones }: P & { secciones: Seccion[] }) {
     return () => window.removeEventListener('scroll', on)
   }, [])
 
+  // Con el menú móvil abierto el fondo no debe moverse; Escape lo cierra.
+  useEffect(() => {
+    if (!abierto) return
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setAbierto(false)
+    const ancho = () => window.innerWidth > 1180 && setAbierto(false) // ya no es menú móvil
+    window.addEventListener('keydown', esc)
+    window.addEventListener('resize', ancho)
+    return () => {
+      document.body.style.overflow = overflow
+      window.removeEventListener('keydown', esc)
+      window.removeEventListener('resize', ancho)
+    }
+  }, [abierto])
+
   const links = secciones.filter((s) => s.menu && s.id !== 'contratacion')
   const hayContratar = secciones.some((s) => s.id === 'contratacion')
 
