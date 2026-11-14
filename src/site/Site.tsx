@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useMedia } from '../lib/media'
 import { useConfig } from '../lib/useConfig'
 import { aplicarSeo, aplicarTema, whatsappLink } from '../lib/utils'
 import type { SeccionId, SiteConfig } from '../types'
@@ -59,12 +60,28 @@ function Contenido({ cfg }: { cfg: SiteConfig }) {
   const secciones = cfg.secciones.filter((s) => s.visible).sort((a, b) => a.orden - b.orden)
   const wa = whatsappLink(ajustes.contratacion.whatsapp, ajustes.contratacion.mensajeWhatsapp)
 
+  // La música puede tardar en llegar (viene de Drive por trozos): si el visitante
+  // entra antes, suena en cuanto esté lista.
+  const musica = useMedia(ajustes.entrada.musica)
+  const quiereSonar = useRef(false)
+
+  function sonar() {
+    const a = audio.current
+    if (!a) return
+    quiereSonar.current = false
+    a.volume = 0.6
+    a.play().then(() => setSonido(true)).catch(() => setSonido(false))
+  }
+
+  useEffect(() => {
+    if (musica && quiereSonar.current) sonar()
+  }, [musica])
+
   function entrar() {
     setDentro(true)
-    if (audio.current && ajustes.entrada.musica) {
-      audio.current.volume = 0.6
-      audio.current.play().then(() => setSonido(true)).catch(() => setSonido(false))
-    }
+    if (!ajustes.entrada.musica) return
+    quiereSonar.current = true
+    if (musica) sonar()
   }
 
   function alternarSonido() {
@@ -109,7 +126,7 @@ function Contenido({ cfg }: { cfg: SiteConfig }) {
 
   return (
     <div ref={root}>
-      {ajustes.entrada.musica && <audio ref={audio} src={ajustes.entrada.musica} loop preload="none" />}
+      {musica && <audio ref={audio} src={musica} loop preload="auto" />}
 
       {!dentro && (
         <div className="gate">

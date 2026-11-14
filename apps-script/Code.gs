@@ -74,7 +74,10 @@ var CARPETA_RAIZ = 'djnova - Archivos';
 var REVISIONES = ['usuarios', 'sitio', 'contrataciones', 'archivos', 'config'];
 
 /** Acciones sin usuario: las usa la web pública. */
-var PUBLICAS = ['getSitio', 'enviarContratacion'];
+var PUBLICAS = ['getSitio', 'enviarContratacion', 'getArchivo'];
+
+/** Tamaño de cada trozo que sirve getArchivo (la respuesta va en base64: +33 %). */
+var TROZO_BYTES = 3 * 1024 * 1024;
 
 // ---------- Entrada ----------
 
@@ -105,6 +108,7 @@ function doPost(e) {
       // Públicas
       case 'getSitio':                   return handleGetSitio_(body);
       case 'enviarContratacion':         return handleEnviarContratacion_(body);
+      case 'getArchivo':                 return handleGetArchivo_(body);
       // Sesión y usuarios
       case 'login':                      return handleLogin_(body);
       case 'getRevisions':               return handleGetRevisions_(body);
@@ -546,6 +550,29 @@ function handleSubirArchivo_(body) {
     });
   });
   return jsonOut_({ ok: true, driveId: driveId, url: url });
+}
+
+/**
+ * Público: sirve en trozos un archivo subido desde el /admin (audio, video, PDF).
+ * Drive no deja usar sus enlaces como fuente de <audio>/<video> desde otra web, así
+ * que la web pide los trozos aquí y los reensambla en el navegador.
+ * Solo sirve archivos registrados en la pestaña Archivos (nunca otros de tu Drive).
+ */
+function handleGetArchivo_(body) {
+  var id = String(body.driveId || '').replace(/[^A-Za-z0-9_-]/g, '');
+  var reg = buscar_(leer_('Archivos'), 'driveId', id);
+  if (!reg || String(reg.mime).indexOf('image/') === 0) throw new Error('Archivo no disponible.');
+
+  var bytes = DriveApp.getFileById(id).getBlob().getBytes();
+  var partes = Math.max(1, Math.ceil(bytes.length / TROZO_BYTES));
+  var parte = Math.floor(Number(body.parte)) || 0;
+  if (parte < 0 || parte >= partes) throw new Error('Trozo fuera de rango.');
+
+  var trozo = bytes.slice(parte * TROZO_BYTES, (parte + 1) * TROZO_BYTES);
+  return jsonOut_({
+    ok: true, mime: String(reg.mime), bytes: bytes.length, parte: parte, partes: partes,
+    base64: Utilities.base64Encode(trozo)
+  });
 }
 
 /** Carpeta raíz de la app (la crea `instalar`). */

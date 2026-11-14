@@ -100,3 +100,10 @@ Las fechas van como `2026-12-05` y las casillas como `TRUE`/`FALSE`.
 Se suben a `djnova - Archivos/{Imagenes, Audio, Video, Documentos}`, compartidos
 como «cualquiera con el enlace». Límite 20 MB. Para videos largos usa YouTube; el
 video de fondo de la portada debe ser un MP4 corto.
+
+Drive **no deja** usar sus enlaces directamente en `<audio>`/`<video>` de otra web
+(devuelve una página, no el archivo). Por eso la web pide los archivos de audio y
+video al propio script (acción pública `getArchivo`, por trozos de 3 MB, solo de
+archivos registrados en la pestaña `Archivos`) y los reproduce desde el navegador.
+Un MP4 de 15 MB tarda unos segundos en llegar: mientras tanto se ve la imagen de
+portada. Si cambias `Code.gs`, publica una **nueva versión** de la implementación.

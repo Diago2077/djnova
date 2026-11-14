@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { enviarContratacion } from '../lib/api'
+import { useMedia } from '../lib/media'
 import { diaMes, parseFecha, spotifyEmbed, textoAnio, whatsappLink, youtubeId } from '../lib/utils'
 import type { Seccion, SiteConfig } from '../types'
 import { Particulas } from './Particulas'
@@ -89,6 +90,7 @@ export function Hero({ cfg }: P) {
     .map((n) => `${n.prefijo}${n.numero} ${n.etiqueta}`)
     .join(' · ')
   const bg = useRef<HTMLDivElement>(null)
+  const video = useMedia(hero.video)
 
   useEffect(() => {
     const el = bg.current
@@ -107,8 +109,8 @@ export function Hero({ cfg }: P) {
   return (
     <header id="top" className="hero">
       <div className="hero-bg" ref={bg}>
-        {hero.video ? (
-          <video src={hero.video} poster={hero.imagen || undefined} autoPlay muted loop playsInline />
+        {video ? (
+          <video src={video} poster={hero.imagen || undefined} autoPlay muted loop playsInline />
         ) : hero.imagen ? (
           <img src={hero.imagen} alt="" />
         ) : (
