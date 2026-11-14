@@ -25,7 +25,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     entrada: {
       activa: true,
       boton: 'Entrar a la experiencia',
-      aviso: '🎧 Activa el sonido para vivirlo mejor',
+      aviso: 'Activa el sonido para vivirlo mejor',
       musica: '',
     },
     hero: {
@@ -96,9 +96,9 @@ export const DEFAULT_CONFIG: SiteConfig = {
     { numero: 500, prefijo: '+', etiqueta: 'Shows' },
   ],
   paises: [
-    { bandera: '🇦🇷', nombre: 'Argentina', regiones: 'Buenos Aires · Córdoba · Rosario', ciudades: '+30 ciudades' },
-    { bandera: '🇺🇾', nombre: 'Uruguay', regiones: 'Montevideo · Punta del Este', ciudades: '+10 ciudades' },
-    { bandera: '🇨🇱', nombre: 'Chile', regiones: 'Santiago · Viña del Mar', ciudades: '+10 ciudades' },
+    { bandera: 'AR', nombre: 'Argentina', regiones: 'Buenos Aires · Córdoba · Rosario', ciudades: '+30 ciudades' },
+    { bandera: 'UY', nombre: 'Uruguay', regiones: 'Montevideo · Punta del Este', ciudades: '+10 ciudades' },
+    { bandera: 'CL', nombre: 'Chile', regiones: 'Santiago · Viña del Mar', ciudades: '+10 ciudades' },
   ],
   barras: [
     { etiqueta: 'Cobertura nacional', porcentaje: 85 },

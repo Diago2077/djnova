@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { enviarContratacion } from '../lib/api'
 import { useMedia } from '../lib/media'
+import { Bandera, IconoCerrar, IconoDescarga, IconoPlay } from './icons'
 import { diaMes, parseFecha, spotifyEmbed, textoAnio, whatsappLink, youtubeId } from '../lib/utils'
 import type { Seccion, SiteConfig } from '../types'
 import { Particulas } from './Particulas'
@@ -139,7 +140,7 @@ export function Hero({ cfg }: P) {
           )}
           {hero.ctaSecundario && (
             <a href="#envivo" className="btn btn-ghost">
-              ▶ {hero.ctaSecundario}
+              <IconoPlay /> {hero.ctaSecundario}
             </a>
           )}
         </div>
@@ -186,7 +187,13 @@ export function Numeros({ cfg }: P) {
         ))}
       </div>
       {cfg.paises.length > 0 && (
-        <p className="numeros-paises">{cfg.paises.map((p) => `${p.nombre.toUpperCase()} ${p.bandera}`).join(' · ')}</p>
+        <p className="numeros-paises">
+          {cfg.paises.map((p, i) => (
+            <span key={i} className="numeros-pais">
+              {p.nombre.toUpperCase()} <Bandera valor={p.bandera} />
+            </span>
+          ))}
+        </p>
       )}
     </section>
   )
@@ -267,7 +274,9 @@ export function Alcance({ cfg }: P) {
       <div className="paises-grid stagger">
         {cfg.paises.map((p, i) => (
           <article key={i} className="card pais">
-            <span className="pais-flag">{p.bandera}</span>
+            <span className="pais-flag">
+              <Bandera valor={p.bandera} nombre={p.nombre} />
+            </span>
             <h3>{p.nombre}</h3>
             <p className="muted">{p.regiones}</p>
             <strong className="accent">{p.ciudades}</strong>
@@ -402,7 +411,7 @@ export function Galeria({ cfg }: P) {
       {abierta !== null && (
         <div className="lightbox" onClick={() => setAbierta(null)} role="dialog" aria-modal>
           <button className="lightbox-close" aria-label="Cerrar">
-            ×
+            <IconoCerrar />
           </button>
           <img src={fotos[abierta].imagen} alt={fotos[abierta].descripcion} onClick={(e) => e.stopPropagation()} />
         </div>
@@ -581,7 +590,7 @@ export function Presskit({ cfg }: P) {
     <Seccion id="presskit" className="presskit">
       <Cabecera etiqueta={a.etiqueta} titulo={a.titulo} />
       <a className="btn btn-accent reveal" href={a.url} target="_blank" rel="noreferrer" download>
-        ⬇ {a.boton}
+        <IconoDescarga /> {a.boton}
       </a>
     </Seccion>
   )

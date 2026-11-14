@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useMedia } from '../lib/media'
+import { IconoAuriculares, IconoPlay, IconoSilencio, IconoSonido, sinEmojiInicial } from './icons'
 import { useConfig } from '../lib/useConfig'
 import { aplicarSeo, aplicarTema, whatsappLink } from '../lib/utils'
 import type { SeccionId, SiteConfig } from '../types'
@@ -152,9 +153,13 @@ function Contenido({ cfg }: { cfg: SiteConfig }) {
           )}
           {ajustes.marca.apodo && <p className="gate-apodo">{ajustes.marca.apodo}</p>}
           <button className="btn btn-accent" onClick={entrar}>
-            ▶ {ajustes.entrada.boton}
+            <IconoPlay /> {ajustes.entrada.boton}
           </button>
-          {ajustes.entrada.aviso && <p className="gate-aviso">{ajustes.entrada.aviso}</p>}
+          {ajustes.entrada.aviso && (
+            <p className="gate-aviso">
+              <IconoAuriculares /> {sinEmojiInicial(ajustes.entrada.aviso)}
+            </p>
+          )}
         </div>
       )}
 
@@ -170,7 +175,7 @@ function Contenido({ cfg }: { cfg: SiteConfig }) {
 
       {ajustes.entrada.musica && dentro && (
         <button className="fab fab-sound" onClick={alternarSonido} aria-label={sonido ? 'Silenciar' : 'Activar sonido'}>
-          {sonido ? '🔊' : '🔇'}
+          {sonido ? <IconoSonido /> : <IconoSilencio />}
         </button>
       )}
       {wa && (

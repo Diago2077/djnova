@@ -211,7 +211,7 @@ export const PANELES: Panel[] = [
         titulo: 'Países',
         resumen: 'nombre',
         fields: [
-          { key: 'bandera', label: 'Bandera (emoji)' },
+          { key: 'bandera', label: 'Bandera (código de país)', help: 'Dos letras: AR, UY, CL, PY, MX, ES… Se muestra como imagen SVG.' },
           { key: 'nombre', label: 'País' },
           { key: 'regiones', label: 'Regiones / ciudades destacadas' },
           { key: 'ciudades', label: 'Dato destacado (ej. +30 ciudades)' },
