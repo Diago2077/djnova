@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { enviarContratacion } from '../lib/api'
 import { formatoSeguidores, useInstagram } from '../lib/instagram'
 import { useMedia } from '../lib/media'
-import { Bandera, IconoCerrar, IconoDescarga, IconoPlay, IconoRed } from './icons'
+import { Bandera, IconoChat, IconoCerrar, IconoDescarga, IconoPlay, IconoRed } from './icons'
 import { diaMes, parseFecha, spotifyEmbed, textoAnio, whatsappLink, youtubeId } from '../lib/utils'
 import type { Seccion, SiteConfig } from '../types'
 import { Particulas } from './Particulas'
@@ -174,7 +174,7 @@ export function Hero({ cfg }: P) {
         <div className="hero-ctas">
           {hero.ctaPrimario && (
             <a href="#contratacion" className="btn btn-accent btn-pulse">
-              {hero.ctaPrimario}
+              <IconoChat /> {hero.ctaPrimario}
             </a>
           )}
           {hero.ctaSecundario && (

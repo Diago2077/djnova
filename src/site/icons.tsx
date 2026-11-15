@@ -32,7 +32,13 @@ export const IconoPlay = (p: P) => (
   </Icono>
 )
 
-export const IconoDescarga = (p: P) => (
+export const IconoChat = (p: P) => (
+  <Icono {...p}>
+    <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z" />
+  </Icono>
+)
+
+export const IconoDescarga =(p: P) => (
   <Icono {...p}>
     <path d="M12 3v12" />
     <path d="m7 10 5 5 5-5" />
