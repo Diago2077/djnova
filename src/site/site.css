@@ -404,6 +404,19 @@ h3 {
   height: 100%;
   object-fit: cover;
 }
+/* Con video: el degradado va debajo y el video entra con fundido al tener imagen. */
+.hero-bg > .hero-base {
+  position: absolute;
+  inset: 0;
+}
+.hero-bg > video {
+  position: relative;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.hero-bg > video.listo {
+  opacity: 1;
+}
 .hero-fallback {
   background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--accent) 35%, transparent), transparent 50%),
     radial-gradient(circle at 75% 65%, color-mix(in srgb, var(--accent2) 35%, transparent), transparent 50%), var(--bg);

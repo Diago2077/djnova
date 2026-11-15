@@ -110,6 +110,9 @@ export function Hero({ cfg }: P) {
     .join(' · ')
   const bg = useRef<HTMLDivElement>(null)
   const video = useMedia(hero.video)
+  // El video aparece con un fundido cuando ya tiene imagen (si no, "salta" de golpe tras unos segundos).
+  const [listoSrc, setListoSrc] = useState('')
+  const videoListo = !!video.src && listoSrc === video.src
 
   useEffect(() => {
     const el = bg.current
@@ -129,7 +132,24 @@ export function Hero({ cfg }: P) {
     <header id="top" className="hero">
       <div className="hero-bg" ref={bg}>
         {video.src ? (
-          <video src={video.src} ref={video.ref} poster={hero.imagen || undefined} autoPlay muted loop playsInline />
+          <>
+            {hero.imagen ? <img className="hero-base" src={hero.imagen} alt="" /> : <div className="hero-fallback hero-base" />}
+            <video
+              className={videoListo ? 'listo' : ''}
+              src={video.src}
+              ref={(el) => {
+                video.ref(el)
+                if (el && el.readyState >= 2) setListoSrc(video.src)
+              }}
+              onLoadedData={() => setListoSrc(video.src)}
+              poster={hero.imagen || undefined}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+            />
+          </>
         ) : hero.imagen ? (
           <img src={hero.imagen} alt="" />
         ) : (
