@@ -767,7 +767,6 @@ h3 {
   cursor: zoom-in;
   background: var(--surface);
   break-inside: avoid;
-  transition: transform 0.25s ease-out;
 }
 .foto img {
   width: 100%;

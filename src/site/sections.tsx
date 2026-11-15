@@ -405,7 +405,12 @@ export function Galeria({ cfg }: P) {
     const r = el.getBoundingClientRect()
     const x = (e.clientX - r.left) / r.width - 0.5
     const y = (e.clientY - r.top) / r.height - 0.5
-    el.style.transform = `perspective(800px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) scale(1.02)`
+    // GSAP también anima el transform de la foto al aparecer; usar GSAP aquí evita pisarlo.
+    gsap.to(el, { rotationY: x * 10, rotationX: -y * 10, scale: 1.02, transformPerspective: 800, duration: 0.3, ease: 'power2.out', overwrite: 'auto' })
+  }
+
+  function enderezar(e: React.MouseEvent<HTMLButtonElement>) {
+    gsap.to(e.currentTarget, { rotationY: 0, rotationX: 0, scale: 1, duration: 0.5, ease: 'power3.out', overwrite: 'auto' })
   }
 
   if (!fotos.length) return null
@@ -419,7 +424,7 @@ export function Galeria({ cfg }: P) {
             className="foto"
             onClick={() => setAbierta(i)}
             onMouseMove={inclinar}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
+            onMouseLeave={enderezar}
           >
             <img src={f.imagen} alt={f.descripcion || ''} loading="lazy" />
             {f.descripcion && <span>{f.descripcion}</span>}
