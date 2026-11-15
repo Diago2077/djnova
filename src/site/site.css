@@ -116,6 +116,7 @@ h3 {
 }
 .btn-accent {
   background: var(--grad);
+  background-origin: border-box; /* si no, el borde transparente de 1px repite el inicio del degradado */
   color: #fff;
   box-shadow: 0 10px 40px -10px var(--accent);
 }
