@@ -4,7 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { enviarContratacion } from '../lib/api'
 import { formatoSeguidores, useInstagram } from '../lib/instagram'
 import { useMedia } from '../lib/media'
-import { Bandera, IconoCerrar, IconoDescarga, IconoPlay } from './icons'
+import { Bandera, IconoCerrar, IconoDescarga, IconoPlay, IconoRed } from './icons'
 import { diaMes, parseFecha, spotifyEmbed, textoAnio, whatsappLink, youtubeId } from '../lib/utils'
 import type { Seccion, SiteConfig } from '../types'
 import { Particulas } from './Particulas'
@@ -72,8 +72,8 @@ export function Nav({ cfg, secciones }: P & { secciones: Seccion[] }) {
     }
   }, [abierto])
 
-  const links = secciones.filter((s) => s.menu && s.id !== 'contratacion')
-  const hayContratar = secciones.some((s) => s.id === 'contratacion')
+  const links = secciones.filter((s) => s.menu && s.enMenu !== false && s.id !== 'contratacion')
+  const hayContratar = secciones.some((s) => s.id === 'contratacion' && s.enMenu !== false)
 
   return (
     <nav className={`nav ${scrolled ? 'nav-solid' : ''} ${abierto ? 'nav-open' : ''}`}>
@@ -477,14 +477,15 @@ export function Galeria({ cfg }: P) {
 }
 
 // ---------------------------------------------------------------- Bio
-function Redes({ cfg }: P) {
+/** Bio: enlaces con texto. Pie de página (`iconos`): círculos con el logo de cada red. */
+function Redes({ cfg, iconos = false }: P & { iconos?: boolean }) {
   const redes = cfg.redes.filter((r) => r.url)
   if (!redes.length) return null
   return (
-    <div className="redes">
-      {redes.map((r, i) => (
-        <a key={i} href={r.url} target="_blank" rel="noreferrer">
-          {r.red}
+    <div className={`redes ${iconos ? 'redes-iconos' : ''}`}>
+      {redes.map((r) => (
+        <a key={r.red} href={r.url} target="_blank" rel="noreferrer" aria-label={r.red} title={r.red}>
+          {iconos ? <IconoRed red={r.red} /> : r.red}
         </a>
       ))}
     </div>
@@ -715,7 +716,7 @@ export function Presskit({ cfg }: P) {
 export function Footer({ cfg }: P) {
   return (
     <footer className="footer">
-      <Redes cfg={cfg} />
+      <Redes cfg={cfg} iconos />
       <p>{textoAnio(cfg.ajustes.footer.texto)}</p>
     </footer>
   )

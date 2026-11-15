@@ -55,7 +55,7 @@ export type SeccionId =
   | 'instagram'
   | 'presskit'
 
-export interface Seccion { id: SeccionId; menu: string; visible: boolean; orden: number }
+export interface Seccion { id: SeccionId; menu: string; visible: boolean; enMenu: boolean; orden: number }
 export interface Numero { numero: number; prefijo: string; etiqueta: string }
 export interface Pais { bandera: string; nombre: string; regiones: string; ciudades: string }
 export interface Barra { etiqueta: string; porcentaje: number }

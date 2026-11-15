@@ -46,7 +46,7 @@ la llave 🔑. Después ve a **Contenido**, revisa los textos de ejemplo y pulsa
 |---|---|---|
 | `Usuarios` | cuentas del /admin | `usuario` · `password` · `rol` · `activo` · `nombre` |
 | `Ajustes` | textos, colores, enlaces | `clave` · `valor` (ej. `hero.titulo`, `tema.acento`) |
-| `Secciones` | orden y visibilidad | `id` · `menu` · `visible` · `orden` |
+| `Secciones` | orden, visibilidad y si salen en el menú | `id` · `menu` · `visible` · `orden` · `enMenu` |
 | `Numeros` | contadores | `numero` · `prefijo` · `etiqueta` |
 | `Paises` | alcance | `bandera` · `nombre` · `regiones` · `ciudades` |
 | `Barras` | barras de progreso | `etiqueta` · `porcentaje` |

@@ -2,6 +2,9 @@ import type { Listas, SiteConfig } from './types'
 
 // Contenido de ejemplo. Se usa en modo demo y como respaldo para cualquier campo
 // que todavía no exista en la hoja de cálculo.
+/** Redes sociales disponibles: una fila fija por cada una; solo se muestran las que tienen enlace. */
+export const REDES_FIJAS = ['Instagram', 'YouTube', 'Spotify', 'TikTok', 'Facebook', 'X', 'SoundCloud']
+
 export const DEFAULT_CONFIG: SiteConfig = {
   ajustes: {
     marca: {
@@ -79,16 +82,16 @@ export const DEFAULT_CONFIG: SiteConfig = {
     },
   },
   secciones: [
-    { id: 'numeros', menu: 'Números', visible: true, orden: 1 },
-    { id: 'envivo', menu: 'En vivo', visible: true, orden: 2 },
-    { id: 'alcance', menu: 'Mapa', visible: true, orden: 3 },
-    { id: 'agenda', menu: 'Agenda', visible: true, orden: 4 },
-    { id: 'spotify', menu: 'Música', visible: true, orden: 5 },
-    { id: 'galeria', menu: 'Galería', visible: true, orden: 6 },
-    { id: 'bio', menu: 'Bio', visible: true, orden: 7 },
-    { id: 'contratacion', menu: 'Contratar', visible: true, orden: 8 },
-    { id: 'instagram', menu: 'Instagram', visible: true, orden: 9 },
-    { id: 'presskit', menu: 'Presskit', visible: true, orden: 10 },
+    { id: 'numeros', menu: 'Números', visible: true, enMenu: true, orden: 1 },
+    { id: 'envivo', menu: 'En vivo', visible: true, enMenu: true, orden: 2 },
+    { id: 'alcance', menu: 'Mapa', visible: true, enMenu: true, orden: 3 },
+    { id: 'agenda', menu: 'Agenda', visible: true, enMenu: true, orden: 4 },
+    { id: 'spotify', menu: 'Música', visible: true, enMenu: true, orden: 5 },
+    { id: 'galeria', menu: 'Galería', visible: true, enMenu: true, orden: 6 },
+    { id: 'bio', menu: 'Bio', visible: true, enMenu: true, orden: 7 },
+    { id: 'contratacion', menu: 'Contratar', visible: true, enMenu: true, orden: 8 },
+    { id: 'instagram', menu: 'Instagram', visible: true, enMenu: true, orden: 9 },
+    { id: 'presskit', menu: 'Presskit', visible: true, enMenu: true, orden: 10 },
   ],
   numeros: [
     { numero: 100, prefijo: '+', etiqueta: 'Clubs' },
@@ -120,12 +123,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     { imagen: 'https://picsum.photos/seed/dj6/800/600', descripcion: '' },
   ],
   tira: [],
-  redes: [
-    { red: 'Instagram', url: '' },
-    { red: 'YouTube', url: '' },
-    { red: 'Spotify', url: '' },
-    { red: 'TikTok', url: '' },
-  ],
+  redes: REDES_FIJAS.map((red) => ({ red, url: '' })),
   beneficios: [
     { texto: 'Show con impacto real' },
     { texto: 'Público enganchado de principio a fin' },
@@ -136,7 +134,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
 
 /** Un elemento vacío por lista: define columnas y tipos de cada pestaña. */
 export const LIST_TEMPLATES: { [K in keyof Listas]: Listas[K][number] } = {
-  secciones: { id: 'numeros', menu: '', visible: true, orden: 0 },
+  secciones: { id: 'numeros', menu: '', visible: true, enMenu: true, orden: 0 },
   numeros: { numero: 0, prefijo: '', etiqueta: '' },
   paises: { bandera: '', nombre: '', regiones: '', ciudades: '' },
   barras: { etiqueta: '', porcentaje: 0 },

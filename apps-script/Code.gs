@@ -36,7 +36,7 @@ var ENCABEZADOS = {
   Usuarios: ['usuario', 'password', 'rol', 'activo', 'nombre'],
   // Contenido de la web (lo edita el /admin entero de una vez).
   Ajustes: ['clave', 'valor'],
-  Secciones: ['id', 'menu', 'visible', 'orden'],
+  Secciones: ['id', 'menu', 'visible', 'orden', 'enMenu'],
   Numeros: ['numero', 'prefijo', 'etiqueta'],
   Paises: ['bandera', 'nombre', 'regiones', 'ciudades'],
   Barras: ['etiqueta', 'porcentaje'],
@@ -813,6 +813,8 @@ function escribir_(nombre, obj) {
 function reemplazar_(nombre, objs) {
   var sheet = hoja_(nombre);
   var cols = ENCABEZADOS[nombre].length;
+  // Si el código añadió columnas nuevas, el encabezado de una hoja antigua se completa solo.
+  sheet.getRange(1, 1, 1, cols).setValues([ENCABEZADOS[nombre]]);
   var ultima = sheet.getLastRow();
   if (ultima > 1) sheet.getRange(2, 1, ultima - 1, cols).clearContent();
   if (!objs.length) return;

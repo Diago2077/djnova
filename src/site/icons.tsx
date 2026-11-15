@@ -98,3 +98,71 @@ export function Bandera({ valor, nombre }: { valor: string; nombre?: string }) {
 export function sinEmojiInicial(texto: string): string {
   return (texto || '').replace(/^[\p{Extended_Pictographic}️‍\s]+/u, '')
 }
+
+/** Logo de cada red social (ver REDES_FIJAS en defaults.ts). */
+export function IconoRed({ red, ...p }: P & { red: string }) {
+  switch (red) {
+    case 'Instagram':
+      return (
+        <Icono {...p}>
+          <rect x="3" y="3" width="18" height="18" rx="5" />
+          <circle cx="12" cy="12" r="4" />
+          <circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" />
+        </Icono>
+      )
+    case 'YouTube':
+      return (
+        <Icono {...p}>
+          <rect x="2.5" y="5" width="19" height="14" rx="4" />
+          <path d="m10 9.2 5 2.8-5 2.8Z" fill="currentColor" />
+        </Icono>
+      )
+    case 'Spotify':
+      return (
+        <Icono {...p}>
+          <circle cx="12" cy="12" r="9.5" />
+          <path d="M7 9.4c3.4-1 7-.7 10 1" />
+          <path d="M7.6 12.6c2.8-.8 5.6-.5 8 .9" />
+          <path d="M8.3 15.6c2.2-.6 4.4-.4 6.2.6" />
+        </Icono>
+      )
+    case 'TikTok':
+      return (
+        <Icono {...p}>
+          <path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5" />
+          <path d="M14 3c.4 2.6 2 4.2 5 4.5" />
+        </Icono>
+      )
+    case 'Facebook':
+      return (
+        <Icono {...p}>
+          <path d="M17.5 3h-2.7A4.8 4.8 0 0 0 10 7.8V10H7v4h3v7h4v-7h3l.8-4H14V7.8c0-.5.4-.8.8-.8h2.7Z" />
+        </Icono>
+      )
+    case 'X':
+      return (
+        <Icono {...p}>
+          <path d="M4 4l16 16" />
+          <path d="M20 4 4 20" />
+        </Icono>
+      )
+    case 'SoundCloud':
+      return (
+        <Icono {...p}>
+          <path d="M3 15v3" />
+          <path d="M5.8 13v5" />
+          <path d="M8.6 11.5V18" />
+          <path d="M11.4 9.5V18h7.1a3.2 3.2 0 0 0 .4-6.4A5.6 5.6 0 0 0 11.4 9.5Z" />
+        </Icono>
+      )
+    default:
+      return (
+        <Icono {...p}>
+          <circle cx="12" cy="12" r="9.5" />
+          <path d="M2.5 12h19" />
+          <path d="M12 2.5c2.6 2.8 2.6 16.2 0 19" />
+          <path d="M12 2.5c-2.6 2.8-2.6 16.2 0 19" />
+        </Icono>
+      )
+  }
+}

@@ -10,7 +10,6 @@ import {
   MonitorPlay,
   Music,
   Palette,
-  Paperclip,
   UserRound,
   type LucideIcon,
 } from 'lucide-react'
@@ -53,8 +52,17 @@ export interface ListaDef {
   help?: string
 }
 
+/** frecuente = lo que se actualiza a menudo; config = se configura una vez y casi no se toca. */
+export type Bloque = 'frecuente' | 'config'
+
+export const BLOQUES: { id: Bloque; titulo: string }[] = [
+  { id: 'frecuente', titulo: 'Lo que actualizas seguido' },
+  { id: 'config', titulo: 'Configuración (se toca una vez)' },
+]
+
 export interface Panel {
   id: string
+  bloque: Bloque
   titulo: string
   icono: LucideIcon
   descripcion?: string
@@ -72,10 +80,86 @@ const cabecera = (extra: FieldDef[] = []): FieldDef[] => [
 
 export const PANELES: Panel[] = [
   {
+    id: 'agenda',
+    bloque: 'frecuente',
+    titulo: 'Agenda',
+    icono: CalendarDays,
+    descripcion: 'Los shows pasados se ocultan solos al día siguiente.',
+    grupos: [{ grupo: 'agenda', fields: cabecera([{ key: 'vacio', label: 'Texto cuando no hay fechas' }]) }],
+    listas: [
+      {
+        key: 'agenda',
+        titulo: 'Shows',
+        resumen: 'lugar',
+        fields: [
+          { key: 'fecha', label: 'Fecha', type: 'date' },
+          { key: 'lugar', label: 'Local / evento' },
+          { key: 'ciudad', label: 'Ciudad - país' },
+          { key: 'estado', label: 'Estado', type: 'select', options: ['Confirmado', 'Últimas entradas', 'Agotado', 'Por confirmar', ''] },
+          { key: 'entradas', label: 'Link de entradas', type: 'url' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'multimedia',
+    bloque: 'frecuente',
+    titulo: 'Fotos y videos',
+    icono: Images,
+    descripcion: 'Galería, tira de fotos bajo la portada y videos extra de «En vivo».',
+    grupos: [{ grupo: 'galeria', fields: cabecera() }],
+    listas: [
+      {
+        key: 'galeria',
+        titulo: 'Galería (fotos)',
+        resumen: 'descripcion',
+        fields: [
+          { key: 'imagen', label: 'Foto', type: 'image' },
+          { key: 'descripcion', label: 'Descripción (opcional)' },
+        ],
+      },
+      {
+        key: 'tira',
+        titulo: 'Tira bajo la portada',
+        resumen: 'imagen',
+        fields: [{ key: 'imagen', label: 'Foto', type: 'image', help: 'Se ven en una tira a ancho completo, entre la portada y los números. Mejor cuadradas; con 4 fotos queda como en la referencia. Sin fotos, la tira no aparece.' }],
+      },
+      {
+        key: 'videos',
+        titulo: 'Videos (En vivo)',
+        resumen: 'titulo',
+        fields: [
+          { key: 'youtube', label: 'Enlace de YouTube', type: 'url' },
+          { key: 'titulo', label: 'Título' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'numeros',
+    bloque: 'frecuente',
+    titulo: 'Números',
+    icono: Hash,
+    descripcion: 'Contadores animados. Los tres primeros también aparecen en la portada.',
+    listas: [
+      {
+        key: 'numeros',
+        titulo: 'Contadores',
+        resumen: 'etiqueta',
+        fields: [
+          { key: 'prefijo', label: 'Prefijo (ej. +)' },
+          { key: 'numero', label: 'Número', type: 'number' },
+          { key: 'etiqueta', label: 'Etiqueta' },
+        ],
+      },
+    ],
+  },
+  {
     id: 'identidad',
-    titulo: 'Identidad y SEO',
+    bloque: 'config',
+    titulo: 'Identidad, SEO y pie',
     icono: UserRound,
-    descripcion: 'Tu nombre artístico, logo y cómo aparece la web en Google y al compartirla.',
+    descripcion: 'Tu nombre artístico, logo, cómo aparece la web en Google, el presskit y el pie de página.',
     grupos: [
       {
         grupo: 'marca',
@@ -95,10 +179,22 @@ export const PANELES: Panel[] = [
           { key: 'imagen', label: 'Imagen al compartir (1200×630)', type: 'image' },
         ],
       },
+      {
+        grupo: 'presskit',
+        titulo: 'Presskit',
+        fields: [
+          { key: 'etiqueta', label: 'Etiqueta superior' },
+          { key: 'titulo', label: 'Título', help: TITULO_HELP },
+          { key: 'boton', label: 'Texto del botón' },
+          { key: 'url', label: 'Archivo PDF o enlace', type: 'file', accept: 'application/pdf' },
+        ],
+      },
+      { grupo: 'footer', titulo: 'Pie de página', fields: [{ key: 'texto', label: 'Texto', help: '{año} se reemplaza por el año actual.' }] },
     ],
   },
   {
     id: 'tema',
+    bloque: 'config',
     titulo: 'Diseño y colores',
     icono: Palette,
     grupos: [
@@ -121,6 +217,7 @@ export const PANELES: Panel[] = [
   },
   {
     id: 'portada',
+    bloque: 'config',
     titulo: 'Entrada y portada',
     icono: Clapperboard,
     grupos: [
@@ -146,20 +243,13 @@ export const PANELES: Panel[] = [
         ],
       },
     ],
-    listas: [
-      {
-        key: 'tira',
-        titulo: 'Fotos bajo la portada',
-        resumen: 'imagen',
-        fields: [{ key: 'imagen', label: 'Foto', type: 'image', help: 'Se ven en una tira a ancho completo, entre la portada y los números. Mejor cuadradas; con 4 fotos queda como en la referencia. Sin fotos, la tira no aparece.' }],
-      },
-    ],
   },
   {
     id: 'secciones',
+    bloque: 'config',
     titulo: 'Secciones y menú',
     icono: LayoutList,
-    descripcion: 'Activa, oculta y reordena las secciones. El texto de menú vacío las oculta del menú pero no de la página.',
+    descripcion: 'Elige qué secciones se ven en la página y cuáles aparecen en el menú de arriba. Quitar una del menú no la oculta de la página.',
     listas: [
       {
         key: 'secciones',
@@ -169,32 +259,16 @@ export const PANELES: Panel[] = [
         fields: [
           { key: 'id', label: 'Sección', type: 'readonly' },
           { key: 'menu', label: 'Texto en el menú' },
-          { key: 'visible', label: 'Visible', type: 'bool' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'numeros',
-    titulo: 'Números',
-    icono: Hash,
-    descripcion: 'Contadores animados. Los tres primeros también aparecen en la portada.',
-    listas: [
-      {
-        key: 'numeros',
-        titulo: 'Contadores',
-        resumen: 'etiqueta',
-        fields: [
-          { key: 'prefijo', label: 'Prefijo (ej. +)' },
-          { key: 'numero', label: 'Número', type: 'number' },
-          { key: 'etiqueta', label: 'Etiqueta' },
+          { key: 'enMenu', label: 'Mostrar en el menú de arriba', type: 'bool', help: 'Si lo apagas, la sección sigue en la página pero no sale en el menú.' },
+          { key: 'visible', label: 'Mostrar la sección en la página', type: 'bool' },
         ],
       },
     ],
   },
   {
     id: 'envivo',
-    titulo: 'En vivo (videos)',
+    bloque: 'config',
+    titulo: 'En vivo (video principal)',
     icono: MonitorPlay,
     grupos: [
       {
@@ -205,20 +279,10 @@ export const PANELES: Panel[] = [
         ]),
       },
     ],
-    listas: [
-      {
-        key: 'videos',
-        titulo: 'Más videos',
-        resumen: 'titulo',
-        fields: [
-          { key: 'youtube', label: 'Enlace de YouTube', type: 'url' },
-          { key: 'titulo', label: 'Título' },
-        ],
-      },
-    ],
   },
   {
     id: 'alcance',
+    bloque: 'config',
     titulo: 'Mapa / alcance',
     icono: Globe,
     grupos: [{ grupo: 'alcance', fields: cabecera([{ key: 'texto', label: 'Texto', type: 'textarea' }]) }],
@@ -246,28 +310,8 @@ export const PANELES: Panel[] = [
     ],
   },
   {
-    id: 'agenda',
-    titulo: 'Agenda',
-    icono: CalendarDays,
-    descripcion: 'Los shows pasados se ocultan solos al día siguiente.',
-    grupos: [{ grupo: 'agenda', fields: cabecera([{ key: 'vacio', label: 'Texto cuando no hay fechas' }]) }],
-    listas: [
-      {
-        key: 'agenda',
-        titulo: 'Shows',
-        resumen: 'lugar',
-        fields: [
-          { key: 'fecha', label: 'Fecha', type: 'date' },
-          { key: 'lugar', label: 'Local / evento' },
-          { key: 'ciudad', label: 'Ciudad - país' },
-          { key: 'estado', label: 'Estado', type: 'select', options: ['Confirmado', 'Últimas entradas', 'Agotado', 'Por confirmar', ''] },
-          { key: 'entradas', label: 'Link de entradas', type: 'url' },
-        ],
-      },
-    ],
-  },
-  {
     id: 'spotify',
+    bloque: 'config',
     titulo: 'Música',
     icono: Music,
     grupos: [
@@ -280,25 +324,9 @@ export const PANELES: Panel[] = [
     ],
   },
   {
-    id: 'galeria',
-    titulo: 'Galería',
-    icono: Images,
-    grupos: [{ grupo: 'galeria', fields: cabecera() }],
-    listas: [
-      {
-        key: 'galeria',
-        titulo: 'Fotos',
-        resumen: 'descripcion',
-        fields: [
-          { key: 'imagen', label: 'Foto', type: 'image' },
-          { key: 'descripcion', label: 'Descripción (opcional)' },
-        ],
-      },
-    ],
-  },
-  {
     id: 'bio',
-    titulo: 'Bio y redes',
+    bloque: 'config',
+    titulo: 'Bio, redes e Instagram',
     icono: FileText,
     grupos: [
       {
@@ -308,47 +336,6 @@ export const PANELES: Panel[] = [
           { key: 'foto', label: 'Foto', type: 'image' },
         ]),
       },
-    ],
-    listas: [
-      {
-        key: 'redes',
-        titulo: 'Redes sociales',
-        resumen: 'red',
-        help: 'Se muestran en la bio y en el pie de página.',
-        fields: [
-          { key: 'red', label: 'Nombre' },
-          { key: 'url', label: 'Enlace', type: 'url' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'contratacion',
-    titulo: 'Contratación',
-    icono: Handshake,
-    grupos: [
-      {
-        grupo: 'contratacion',
-        fields: cabecera([
-          { key: 'texto', label: 'Texto', type: 'textarea' },
-          { key: 'whatsapp', label: 'WhatsApp (con código de país)', help: 'Ej. 5491112345678.' },
-          { key: 'mensajeWhatsapp', label: 'Mensaje prellenado de WhatsApp' },
-          { key: 'botonFlotante', label: 'Mostrar botón flotante de WhatsApp', type: 'bool', help: 'El círculo verde fijo en la esquina de la web. Solo aparece si hay número de WhatsApp.' },
-          { key: 'boton', label: 'Texto del botón de WhatsApp' },
-          { key: 'email', label: 'Email de contacto (opcional)' },
-          { key: 'formularioActivo', label: 'Mostrar formulario de solicitud', type: 'bool' },
-          { key: 'formularioTitulo', label: 'Título del formulario' },
-          { key: 'formularioGracias', label: 'Mensaje tras enviar' },
-        ]),
-      },
-    ],
-    listas: [{ key: 'beneficios', titulo: 'Puntos fuertes', resumen: 'texto', fields: [{ key: 'texto', label: 'Texto' }] }],
-  },
-  {
-    id: 'extras',
-    titulo: 'Instagram, presskit y pie',
-    icono: Paperclip,
-    grupos: [
       {
         grupo: 'instagram',
         titulo: 'Instagram',
@@ -376,17 +363,42 @@ export const PANELES: Panel[] = [
           { key: 'seguidores', label: 'Seguidores (texto, ej. 8,4K)', help: 'Solo si no usas el feed automático.' },
         ],
       },
+    ],
+    listas: [
       {
-        grupo: 'presskit',
-        titulo: 'Presskit',
+        key: 'redes',
+        titulo: 'Redes sociales',
+        resumen: 'red',
+        fija: true,
+        help: 'Pega el enlace de cada red que uses. Las que dejes vacías no aparecen. Se muestran con su logo en la bio y en el pie de página.',
         fields: [
-          { key: 'etiqueta', label: 'Etiqueta superior' },
-          { key: 'titulo', label: 'Título', help: TITULO_HELP },
-          { key: 'boton', label: 'Texto del botón' },
-          { key: 'url', label: 'Archivo PDF o enlace', type: 'file', accept: 'application/pdf' },
+          { key: 'red', label: 'Red', type: 'readonly' },
+          { key: 'url', label: 'Enlace', type: 'url' },
         ],
       },
-      { grupo: 'footer', titulo: 'Pie de página', fields: [{ key: 'texto', label: 'Texto', help: '{año} se reemplaza por el año actual.' }] },
     ],
+  },
+  {
+    id: 'contratacion',
+    bloque: 'config',
+    titulo: 'Contratación',
+    icono: Handshake,
+    grupos: [
+      {
+        grupo: 'contratacion',
+        fields: cabecera([
+          { key: 'texto', label: 'Texto', type: 'textarea' },
+          { key: 'whatsapp', label: 'WhatsApp (con código de país)', help: 'Ej. 5491112345678.' },
+          { key: 'mensajeWhatsapp', label: 'Mensaje prellenado de WhatsApp' },
+          { key: 'botonFlotante', label: 'Mostrar botón flotante de WhatsApp', type: 'bool', help: 'El círculo verde fijo en la esquina de la web. Solo aparece si hay número de WhatsApp.' },
+          { key: 'boton', label: 'Texto del botón de WhatsApp' },
+          { key: 'email', label: 'Email de contacto (opcional)' },
+          { key: 'formularioActivo', label: 'Mostrar formulario de solicitud', type: 'bool' },
+          { key: 'formularioTitulo', label: 'Título del formulario' },
+          { key: 'formularioGracias', label: 'Mensaje tras enviar' },
+        ]),
+      },
+    ],
+    listas: [{ key: 'beneficios', titulo: 'Puntos fuertes', resumen: 'texto', fields: [{ key: 'texto', label: 'Texto' }] }],
   },
 ]

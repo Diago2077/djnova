@@ -1,11 +1,12 @@
-import { DEFAULT_CONFIG, LIST_KEYS, LIST_TEMPLATES } from '../defaults'
+import { DEFAULT_CONFIG, LIST_KEYS, LIST_TEMPLATES, REDES_FIJAS } from '../defaults'
 import type { Ajustes, SiteConfig, Tablas } from '../types'
 
 const TRUE_WORDS = ['true', 'verdadero', '1', 'si', 'sí', 'x', 'yes']
 
 function cast(raw: unknown, sample: unknown): unknown {
   const s = raw == null ? '' : String(raw).trim()
-  if (typeof sample === 'boolean') return TRUE_WORDS.includes(s.toLowerCase())
+  // Celda vacía = columna nueva que aún no se rellenó: se conserva el valor por defecto.
+  if (typeof sample === 'boolean') return s === '' ? sample : TRUE_WORDS.includes(s.toLowerCase())
   if (typeof sample === 'number') {
     const n = Number(s.replace(',', '.'))
     return Number.isFinite(n) ? n : sample
@@ -54,6 +55,17 @@ export function fromTablas(t: Tablas | null | undefined): SiteConfig {
       .filter((r) => Object.values(r).some((v) => String(v ?? '').trim() !== ''))
       .map((r) => Object.fromEntries(Object.entries(tpl).map(([c, sample]) => [c, cast(r[c], sample)])))
   }
+
+  // Redes: una fila fija por red. Se respeta el orden guardado (flechas del admin), se descartan
+  // nombres que no sean de la lista y las que falten se añaden vacías al final.
+  const nombre = (n: string) => REDES_FIJAS.find((f) => f.toLowerCase() === n.trim().toLowerCase())
+  const redes: SiteConfig['redes'] = []
+  for (const r of cfg.redes) {
+    const red = nombre(r.red)
+    if (red && !redes.some((x) => x.red === red)) redes.push({ red, url: r.url })
+  }
+  for (const red of REDES_FIJAS) if (!redes.some((x) => x.red === red)) redes.push({ red, url: '' })
+  cfg.redes = redes
 
   // Asegura que las secciones nuevas que añada el código aparezcan aunque la hoja sea antigua.
   for (const s of DEFAULT_CONFIG.secciones) {

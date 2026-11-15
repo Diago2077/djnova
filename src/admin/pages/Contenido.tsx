@@ -1,11 +1,12 @@
-import { ExternalLink, Info, Loader2, RotateCcw, Save } from 'lucide-react'
+import { ChevronDown, ExternalLink, Info, Loader2, RotateCcw, Save } from 'lucide-react'
+import { useState } from 'react'
 import { NavLink, Navigate, useParams } from 'react-router-dom'
 import type { Ajustes } from '@/types'
 import { useAuth } from '../auth'
 import { useContenido } from '../contenido'
 import { Campo, EditorLista } from '../fields'
 import { cn } from '../lib/cn'
-import { PANELES, type GuiaDef } from '../schema'
+import { BLOQUES, PANELES, type GuiaDef, type Panel } from '../schema'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Card, CardBody, CardHeader } from '../ui/card'
@@ -40,6 +41,23 @@ function Guia({ guia }: { guia: GuiaDef }) {
   )
 }
 
+function EnlacePanel({ p }: { p: Panel }) {
+  return (
+    <NavLink
+      to={`/admin/contenido/${p.id}`}
+      className={({ isActive }) =>
+        cn(
+          'flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm transition-colors [&_svg]:size-4',
+          isActive ? 'bg-accent font-medium text-accent-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+        )
+      }
+    >
+      <p.icono />
+      {p.titulo}
+    </NavLink>
+  )
+}
+
 export default function Contenido() {
   const { panel: panelId } = useParams()
   const navigate = useNavigate()
@@ -47,6 +65,8 @@ export default function Contenido() {
   const { cfg, error, cambios, guardando, setAjuste, setLista, guardar, descartar } = useContenido()
 
   const panel = PANELES.find((p) => p.id === panelId)
+  // «Configuración» va plegada, salvo que estés dentro de uno de sus paneles.
+  const [confAbierta, setConfAbierta] = useState(false)
   if (!panelId) return <Navigate to={`/admin/contenido/${PANELES[0].id}`} replace />
   if (!panel) return <Navigate to="/admin/contenido" replace />
 
@@ -55,28 +75,40 @@ export default function Contenido() {
       {/* Secciones del contenido */}
       <aside>
         <Select className="lg:hidden" value={panel.id} onChange={(e) => navigate(`/admin/contenido/${e.target.value}`)}>
-          {PANELES.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.titulo}
-            </option>
+          {BLOQUES.map((b) => (
+            <optgroup key={b.id} label={b.titulo}>
+              {PANELES.filter((p) => p.bloque === b.id).map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.titulo}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </Select>
-        <nav className="sticky top-20 hidden flex-col gap-0.5 lg:flex">
-          {PANELES.map((p) => (
-            <NavLink
-              key={p.id}
-              to={`/admin/contenido/${p.id}`}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-2.5 rounded-md px-3 py-1.5 text-sm transition-colors [&_svg]:size-4',
-                  isActive ? 'bg-accent font-medium text-accent-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground',
-                )
-              }
-            >
-              <p.icono />
-              {p.titulo}
-            </NavLink>
-          ))}
+        <nav className="sticky top-20 hidden flex-col gap-4 lg:flex">
+          {BLOQUES.map((b) => {
+            const paneles = PANELES.filter((p) => p.bloque === b.id)
+            const plegable = b.id === 'config'
+            const abierto = !plegable || confAbierta || panel.bloque === 'config'
+            return (
+              <div key={b.id} className="flex flex-col gap-0.5">
+                {plegable ? (
+                  <button
+                    type="button"
+                    onClick={() => setConfAbierta((v) => !(v || panel.bloque === 'config'))}
+                    className="mb-1 flex items-center justify-between px-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+                    aria-expanded={abierto}
+                  >
+                    {b.titulo}
+                    <ChevronDown className={cn('size-3.5 transition-transform', !abierto && '-rotate-90')} />
+                  </button>
+                ) : (
+                  <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{b.titulo}</p>
+                )}
+                {abierto && paneles.map((p) => <EnlacePanel key={p.id} p={p} />)}
+              </div>
+            )
+          })}
         </nav>
       </aside>
 
