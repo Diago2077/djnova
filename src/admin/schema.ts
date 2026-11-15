@@ -104,9 +104,9 @@ export const PANELES: Panel[] = [
   {
     id: 'multimedia',
     bloque: 'frecuente',
-    titulo: 'Fotos y videos',
+    titulo: 'Fotos',
     icono: Images,
-    descripcion: 'Galería, tira de fotos bajo la portada y videos extra de «En vivo».',
+    descripcion: 'Galería y tira de fotos bajo la portada.',
     grupos: [{ grupo: 'galeria', fields: cabecera() }],
     listas: [
       {
@@ -123,15 +123,6 @@ export const PANELES: Panel[] = [
         titulo: 'Tira bajo la portada',
         resumen: 'imagen',
         fields: [{ key: 'imagen', label: 'Foto', type: 'image', help: 'Se ven en una tira a ancho completo, entre la portada y los números. Mejor cuadradas; con 4 fotos queda como en la referencia. Sin fotos, la tira no aparece.' }],
-      },
-      {
-        key: 'videos',
-        titulo: 'Videos (En vivo)',
-        resumen: 'titulo',
-        fields: [
-          { key: 'youtube', label: 'Enlace de YouTube', type: 'url' },
-          { key: 'titulo', label: 'Título' },
-        ],
       },
     ],
   },
@@ -187,6 +178,7 @@ export const PANELES: Panel[] = [
           { key: 'titulo', label: 'Título', help: TITULO_HELP },
           { key: 'boton', label: 'Texto del botón' },
           { key: 'url', label: 'Archivo PDF o enlace', type: 'file', accept: 'application/pdf' },
+          { key: 'fondo', label: 'Foto de fondo (efecto fijo)', type: 'image', help: 'Queda quieta detrás de la sección y se va descubriendo al hacer scroll. Sin foto, fondo liso.' },
         ],
       },
       { grupo: 'footer', titulo: 'Pie de página', fields: [{ key: 'texto', label: 'Texto', help: '{año} se reemplaza por el año actual.' }] },
@@ -268,7 +260,7 @@ export const PANELES: Panel[] = [
   {
     id: 'envivo',
     bloque: 'config',
-    titulo: 'En vivo (video principal)',
+    titulo: 'En vivo (videos)',
     icono: MonitorPlay,
     grupos: [
       {
@@ -277,6 +269,17 @@ export const PANELES: Panel[] = [
           { key: 'texto', label: 'Texto', type: 'textarea' },
           { key: 'youtube', label: 'Video principal de YouTube', type: 'url', help: 'Pega el enlace del video; se reproduce en silencio y en bucle.' },
         ]),
+      },
+    ],
+    listas: [
+      {
+        key: 'videos',
+        titulo: 'Más videos',
+        resumen: 'titulo',
+        fields: [
+          { key: 'youtube', label: 'Enlace de YouTube', type: 'url' },
+          { key: 'titulo', label: 'Título' },
+        ],
       },
     ],
   },
@@ -396,6 +399,7 @@ export const PANELES: Panel[] = [
           { key: 'formularioActivo', label: 'Mostrar formulario de solicitud', type: 'bool' },
           { key: 'formularioTitulo', label: 'Título del formulario' },
           { key: 'formularioGracias', label: 'Mensaje tras enviar' },
+          { key: 'fondo', label: 'Foto de fondo (efecto fijo)', type: 'image', help: 'Queda quieta detrás de la sección y se va descubriendo al hacer scroll. Mejor una foto horizontal y oscura; se oscurece sola. Sin foto, se usa el fondo de colores.' },
         ]),
       },
     ],

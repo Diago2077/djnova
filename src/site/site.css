@@ -923,6 +923,30 @@ h3 {
   background: radial-gradient(circle at 15% 30%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 45%),
     radial-gradient(circle at 90% 80%, color-mix(in srgb, var(--accent2) 14%, transparent), transparent 45%);
 }
+/* Foto fija de fondo: queda quieta y la sección se mueve por encima (efecto «ventana»).
+   clip-path recorta el fixed a la sección y además funciona en iOS, que ignora background-attachment. */
+.section.con-fondo {
+  position: relative;
+  clip-path: inset(0);
+}
+.fondo-fijo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.fondo-fijo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+}
+.section.con-fondo > .container {
+  position: relative;
+  z-index: 1;
+}
 .contratacion-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

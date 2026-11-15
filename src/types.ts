@@ -36,9 +36,10 @@ export interface Ajustes {
     formularioActivo: boolean
     formularioTitulo: string
     formularioGracias: string
+    fondo: string
   }
   instagram: { etiqueta: string; feed: string; usuario: string; descripcion: string; seguidores: string }
-  presskit: { etiqueta: string; titulo: string; boton: string; url: string }
+  presskit: { etiqueta: string; titulo: string; boton: string; url: string; fondo: string }
   footer: { texto: string }
   seo: { titulo: string; descripcion: string; imagen: string }
 }

@@ -71,9 +71,10 @@ export const DEFAULT_CONFIG: SiteConfig = {
       formularioActivo: true,
       formularioTitulo: 'Solicita tu fecha',
       formularioGracias: '¡Gracias! Te contactaremos muy pronto.',
+      fondo: '',
     },
     instagram: { etiqueta: 'Backstage', feed: '', usuario: '', descripcion: '', seguidores: '' },
-    presskit: { etiqueta: 'Para productores', titulo: 'Presskit', boton: 'Descargar presskit', url: '' },
+    presskit: { etiqueta: 'Para productores', titulo: 'Presskit', boton: 'Descargar presskit', url: '', fondo: '' },
     footer: { texto: '© {año} TU NOMBRE — Todos los derechos reservados' },
     seo: {
       titulo: 'TU NOMBRE — La energía que llena pistas',

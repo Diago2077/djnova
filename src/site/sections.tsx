@@ -35,9 +35,10 @@ function Cabecera({ etiqueta, titulo, texto }: { etiqueta?: string; titulo?: str
   )
 }
 
-function Seccion({ id, children, className = '' }: { id: string; children: React.ReactNode; className?: string }) {
+function Seccion({ id, children, className = '', fondo = '' }: { id: string; children: React.ReactNode; className?: string; fondo?: string }) {
   return (
-    <section id={id} className={`section ${className}`}>
+    <section id={id} className={`section ${className} ${fondo ? 'con-fondo' : ''}`}>
+      {fondo && <div className="fondo-fijo" style={{ backgroundImage: `url("${fondo}")` }} aria-hidden="true" />}
       <div className="container">{children}</div>
     </section>
   )
@@ -549,7 +550,7 @@ export function Contratacion({ cfg }: P) {
   }
 
   return (
-    <Seccion id="contratacion" className="contratacion">
+    <Seccion id="contratacion" className="contratacion" fondo={a.fondo}>
       <div className="contratacion-grid">
         <div>
           <Cabecera etiqueta={a.etiqueta} titulo={a.titulo} texto={a.texto} />
@@ -703,7 +704,7 @@ export function Presskit({ cfg }: P) {
   const a = cfg.ajustes.presskit
   if (!a.url) return null
   return (
-    <Seccion id="presskit" className="presskit">
+    <Seccion id="presskit" className="presskit" fondo={a.fondo}>
       <Cabecera etiqueta={a.etiqueta} titulo={a.titulo} />
       <a className="btn btn-accent reveal" href={a.url} target="_blank" rel="noreferrer" download>
         <IconoDescarga /> {a.boton}
