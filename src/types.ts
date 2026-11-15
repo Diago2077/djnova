@@ -40,7 +40,7 @@ export interface Ajustes {
   }
   instagram: { etiqueta: string; feed: string; usuario: string; descripcion: string; seguidores: string }
   presskit: { etiqueta: string; titulo: string; boton: string; url: string; fondo: string }
-  footer: { texto: string }
+  footer: { texto: string; logo: string }
   seo: { titulo: string; descripcion: string; imagen: string }
 }
 

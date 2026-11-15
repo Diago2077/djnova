@@ -75,7 +75,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     },
     instagram: { etiqueta: 'Backstage', feed: '', usuario: '', descripcion: '', seguidores: '' },
     presskit: { etiqueta: 'Para productores', titulo: 'Presskit', boton: 'Descargar presskit', url: '', fondo: '' },
-    footer: { texto: '© {año} TU NOMBRE — Todos los derechos reservados' },
+    footer: { texto: '© {año} TU NOMBRE — Todos los derechos reservados', logo: '' },
     seo: {
       titulo: 'TU NOMBRE — La energía que llena pistas',
       descripcion: 'Shows que llenan pistas. Contrata ahora.',

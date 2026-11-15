@@ -181,7 +181,11 @@ export const PANELES: Panel[] = [
           { key: 'fondo', label: 'Foto de fondo (efecto fijo)', type: 'image', help: 'Queda quieta detrás de la sección y se va descubriendo al hacer scroll. Sin foto, fondo liso.' },
         ],
       },
-      { grupo: 'footer', titulo: 'Pie de página', fields: [{ key: 'texto', label: 'Texto', help: '{año} se reemplaza por el año actual.' }] },
+      { grupo: 'footer', titulo: 'Pie de página', fields: [
+          { key: 'logo', label: 'Logo del pie (PNG transparente)', type: 'image', help: 'Se ve arriba de las redes, atenuado. Si lo dejas vacío usa el logo de la marca, y si tampoco hay, el nombre en texto.' },
+          { key: 'texto', label: 'Texto', help: '{año} se reemplaza por el año actual.' },
+        ],
+      },
     ],
   },
   {

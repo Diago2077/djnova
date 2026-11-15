@@ -715,8 +715,11 @@ export function Presskit({ cfg }: P) {
 
 // ---------------------------------------------------------------- Footer
 export function Footer({ cfg }: P) {
+  const { marca, footer } = cfg.ajustes
+  const logo = footer.logo || marca.logo
   return (
     <footer className="footer">
+      {logo ? <img className="footer-logo" src={logo} alt={marca.nombre} /> : <p className="footer-nombre">{marca.nombre}</p>}
       <Redes cfg={cfg} iconos />
       <p>{textoAnio(cfg.ajustes.footer.texto)}</p>
     </footer>
