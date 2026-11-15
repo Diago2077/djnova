@@ -53,6 +53,7 @@ la llave 🔑. Después ve a **Contenido**, revisa los textos de ejemplo y pulsa
 | `Agenda` | shows | `fecha` · `lugar` · `ciudad` · `estado` · `entradas` |
 | `Videos` | videos extra | `youtube` · `titulo` |
 | `Galeria` | fotos | `imagen` · `descripcion` |
+| `Tira` | fotos bajo la portada | `imagen` |
 | `Redes` | redes sociales | `red` · `url` |
 | `Beneficios` | puntos fuertes | `texto` |
 | `Contrataciones` | solicitudes del formulario (privada) | `id` · `recibido` · `nombre` · `contacto` · `fechaEvento` · `ciudad` · `evento` · `mensaje` · `estado` |

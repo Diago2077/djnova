@@ -383,6 +383,19 @@ export function Spotify({ cfg }: P) {
   )
 }
 
+// ---------------------------------------------------------------- Tira de fotos bajo la portada
+export function TiraFotos({ cfg }: P) {
+  const fotos = cfg.tira.filter((f) => f.imagen)
+  if (!fotos.length) return null
+  return (
+    <div className="tira stagger" style={{ '--cols': Math.min(fotos.length, 4) } as React.CSSProperties}>
+      {fotos.map((f, i) => (
+        <img key={i} src={f.imagen} alt="" loading="lazy" />
+      ))}
+    </div>
+  )
+}
+
 // ---------------------------------------------------------------- Galería
 export function Galeria({ cfg }: P) {
   const a = cfg.ajustes.galeria

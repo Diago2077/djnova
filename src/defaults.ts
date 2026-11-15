@@ -63,6 +63,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
       boton: 'Quiero cerrar una fecha',
       whatsapp: '',
       mensajeWhatsapp: 'Hola, quiero consultar una fecha',
+      botonFlotante: true,
       email: '',
       formularioActivo: true,
       formularioTitulo: 'Solicita tu fecha',
@@ -118,6 +119,7 @@ export const DEFAULT_CONFIG: SiteConfig = {
     { imagen: 'https://picsum.photos/seed/dj5/800/1000', descripcion: '' },
     { imagen: 'https://picsum.photos/seed/dj6/800/600', descripcion: '' },
   ],
+  tira: [],
   redes: [
     { red: 'Instagram', url: '' },
     { red: 'YouTube', url: '' },
@@ -141,6 +143,7 @@ export const LIST_TEMPLATES: { [K in keyof Listas]: Listas[K][number] } = {
   agenda: { fecha: '', lugar: '', ciudad: '', estado: 'Confirmado', entradas: '' },
   videos: { youtube: '', titulo: '' },
   galeria: { imagen: '', descripcion: '' },
+  tira: { imagen: '' },
   redes: { red: '', url: '' },
   beneficios: { texto: '' },
 }

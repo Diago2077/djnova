@@ -43,6 +43,7 @@ var ENCABEZADOS = {
   Agenda: ['fecha', 'lugar', 'ciudad', 'estado', 'entradas'],
   Videos: ['youtube', 'titulo'],
   Galeria: ['imagen', 'descripcion'],
+  Tira: ['imagen'],
   Redes: ['red', 'url'],
   Beneficios: ['texto'],
   // Privado.
@@ -60,7 +61,7 @@ var FECHAS_DIA = ['fechaEvento'];
 /** Clave que usa el frontend → pestaña del contenido de la web. */
 var TABLAS_SITIO = {
   ajustes: 'Ajustes', secciones: 'Secciones', numeros: 'Numeros', paises: 'Paises', barras: 'Barras',
-  agenda: 'Agenda', videos: 'Videos', galeria: 'Galeria', redes: 'Redes', beneficios: 'Beneficios'
+  agenda: 'Agenda', videos: 'Videos', galeria: 'Galeria', tira: 'Tira', redes: 'Redes', beneficios: 'Beneficios'
 };
 
 var ROLES = ['admin', 'operador', 'consulta'];

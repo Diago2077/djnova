@@ -565,11 +565,31 @@ h3 {
   padding: 20px;
   text-align: center;
 }
+.tira {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), 1fr);
+}
+.tira img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+@media (max-width: 700px) {
+  .tira {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 .videos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   margin-top: 28px;
+}
+@media (max-width: 600px) {
+  .videos-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .videos-grid figure {
   margin: 0;

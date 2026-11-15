@@ -31,6 +31,7 @@ export interface Ajustes {
     boton: string
     whatsapp: string
     mensajeWhatsapp: string
+    botonFlotante: boolean
     email: string
     formularioActivo: boolean
     formularioTitulo: string
@@ -61,6 +62,7 @@ export interface Barra { etiqueta: string; porcentaje: number }
 export interface Show { fecha: string; lugar: string; ciudad: string; estado: string; entradas: string }
 export interface Video { youtube: string; titulo: string }
 export interface Foto { imagen: string; descripcion: string }
+export interface FotoTira { imagen: string }
 export interface Red { red: string; url: string }
 export interface Beneficio { texto: string }
 
@@ -72,6 +74,7 @@ export interface Listas {
   agenda: Show[]
   videos: Video[]
   galeria: Foto[]
+  tira: FotoTira[]
   redes: Red[]
   beneficios: Beneficio[]
 }

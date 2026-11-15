@@ -146,6 +146,14 @@ export const PANELES: Panel[] = [
         ],
       },
     ],
+    listas: [
+      {
+        key: 'tira',
+        titulo: 'Fotos bajo la portada',
+        resumen: 'imagen',
+        fields: [{ key: 'imagen', label: 'Foto', type: 'image', help: 'Se ven en una tira a ancho completo, entre la portada y los números. Mejor cuadradas; con 4 fotos queda como en la referencia. Sin fotos, la tira no aparece.' }],
+      },
+    ],
   },
   {
     id: 'secciones',
@@ -323,8 +331,9 @@ export const PANELES: Panel[] = [
         grupo: 'contratacion',
         fields: cabecera([
           { key: 'texto', label: 'Texto', type: 'textarea' },
-          { key: 'whatsapp', label: 'WhatsApp (con código de país)', help: 'Ej. 5491112345678. Activa también el botón flotante.' },
+          { key: 'whatsapp', label: 'WhatsApp (con código de país)', help: 'Ej. 5491112345678.' },
           { key: 'mensajeWhatsapp', label: 'Mensaje prellenado de WhatsApp' },
+          { key: 'botonFlotante', label: 'Mostrar botón flotante de WhatsApp', type: 'bool', help: 'El círculo verde fijo en la esquina de la web. Solo aparece si hay número de WhatsApp.' },
           { key: 'boton', label: 'Texto del botón de WhatsApp' },
           { key: 'email', label: 'Email de contacto (opcional)' },
           { key: 'formularioActivo', label: 'Mostrar formulario de solicitud', type: 'bool' },
