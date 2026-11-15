@@ -1219,7 +1219,7 @@ h3 {
 
 /* Footer y botones flotantes */
 .footer {
-  padding: 48px 16px;
+  padding: 104px 16px 28px;
   border-top: 1px solid var(--line);
   text-align: center;
   color: var(--muted);
@@ -1229,14 +1229,15 @@ h3 {
 }
 .footer-logo {
   display: block;
-  height: 64px;
-  max-width: 220px;
-  margin: 0 auto 36px;
+  height: 48px;
+  max-width: 160px;
+  margin: 0 auto 56px;
   object-fit: contain;
   opacity: 0.55;
 }
 .footer-nombre {
-  margin: 0 0 36px;
+  margin: 0 0 56px;
+  line-height: 48px;
   font-family: var(--font-display);
   font-size: 1.4rem;
   font-weight: 800;
@@ -1246,7 +1247,7 @@ h3 {
 }
 .footer .redes {
   justify-content: center;
-  margin: 0 0 20px;
+  margin: 0 0 32px;
 }
 .fab {
   position: fixed;
