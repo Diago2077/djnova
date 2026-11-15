@@ -56,8 +56,8 @@ export interface ListaDef {
 export type Bloque = 'frecuente' | 'config'
 
 export const BLOQUES: { id: Bloque; titulo: string }[] = [
-  { id: 'frecuente', titulo: 'Lo que actualizas seguido' },
-  { id: 'config', titulo: 'Configuración (se toca una vez)' },
+  { id: 'frecuente', titulo: 'Actualizaciones' },
+  { id: 'config', titulo: 'Configuración' },
 ]
 
 export interface Panel {
